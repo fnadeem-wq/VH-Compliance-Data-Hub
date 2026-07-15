@@ -1,0 +1,5 @@
+Provider Full Name,National Provider ID,Credential,Payment Type,Payment Amount,Payment Date
+Dr. Jane Smith,1234567890,MD,Meal,45.50,2026-01-15
+Dr. John Doe,9876543210,DO,Consulting,1200.00,2026-01-18
+Dr. Alice Johnson,1122334455,MD,Travel,320.75,2026-01-20
+Dr. Bob Williams,5566778899,NP,Meal,32.00,2026-01-22
