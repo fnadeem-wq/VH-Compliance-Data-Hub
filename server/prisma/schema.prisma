@@ -32,6 +32,7 @@ model ColumnMapping {
   sourceSystem      SourceSystem @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
   standardizedField String
   rawColumnName     String
+  constantValue     String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 

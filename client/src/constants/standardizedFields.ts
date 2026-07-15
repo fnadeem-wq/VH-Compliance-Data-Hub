@@ -18,7 +18,7 @@ export const STANDARDIZED_FIELDS: StandardizedFieldDef[] = [
   { field: "physician_designation", label: "Physician Designation" },
   {
     field: "transfer_of_value",
-    label: "Transfer of Value",
+    label: "Nature of Payment",
     helpText: "Category/type of payment, e.g. Meal, Consulting, Transport",
   },
   { field: "amount", label: "Amount", helpText: "Numeric dollar value, e.g. 12.45" },

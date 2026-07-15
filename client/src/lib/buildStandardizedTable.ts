@@ -31,6 +31,18 @@ export function buildStandardizedTable(
 
     for (const entry of mapping) {
       const key = FIELD_TO_KEY[entry.standardizedField];
+
+      // Handle constant values
+      if (entry.constantValue) {
+        if (key === "amount") {
+          const numeric = parseFloat(String(entry.constantValue));
+          result.amount = Number.isNaN(numeric) ? null : numeric;
+        } else if (key === "transferOfValue") {
+          result.transferOfValue = entry.constantValue;
+        }
+        continue;
+      }
+
       const rawValue = row[entry.rawColumnName];
       if (rawValue === undefined || rawValue === null || rawValue === "") continue;
 

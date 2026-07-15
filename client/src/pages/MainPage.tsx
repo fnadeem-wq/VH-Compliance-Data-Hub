@@ -317,7 +317,28 @@ export function MainPage({ initialSelection }: MainPageProps) {
                 clientName={selectedClient.name}
                 sourceSystemName={selectedSourceSystem.name}
                 updatedAt={state.savedMapping?.updatedAt ?? null}
-                onUseSaved={() => dispatch({ type: "CHOOSE_USE_SAVED_MAPPING" })}
+                onUseSaved={() => {
+                  if (state.rawFileData && state.savedMapping) {
+                    const savedColumnNames = new Set(
+                      state.savedMapping.mappings.map((m) => m.rawColumnName).filter((name) => name)
+                    );
+                    const currentHeaders = new Set(state.rawFileData.headers);
+
+                    const allColumnsMatch = [...savedColumnNames].every((col) =>
+                      currentHeaders.has(col)
+                    );
+
+                    if (!allColumnsMatch) {
+                      dispatch({
+                        type: "SET_ERROR",
+                        error:
+                          "Schema is different from the previous file. The columns do not match. Please create a new mapping.",
+                      });
+                      return;
+                    }
+                  }
+                  dispatch({ type: "CHOOSE_USE_SAVED_MAPPING" });
+                }}
                 onCreateNew={() => dispatch({ type: "CHOOSE_CREATE_NEW_MAPPING" })}
                 onCancel={() => dispatch({ type: "RESET_UPLOAD" })}
               />

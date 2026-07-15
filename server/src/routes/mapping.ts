@@ -15,6 +15,7 @@ const mappingBodySchema = z.object({
     z.object({
       standardizedField: z.enum(STANDARDIZED_FIELDS),
       rawColumnName: z.string().trim().min(1),
+      constantValue: z.string().nullable().optional(),
     })
   ),
 });
@@ -23,7 +24,7 @@ mappingRouter.get("/", async (req: Request<MappingParams>, res: Response) => {
   const sourceSystemId = Number(req.params.id);
   const mappings = await prisma.columnMapping.findMany({
     where: { sourceSystemId },
-    select: { standardizedField: true, rawColumnName: true, updatedAt: true },
+    select: { standardizedField: true, rawColumnName: true, constantValue: true, updatedAt: true },
     // Ordered by id (insertion order), not updatedAt, so multi-column fields
     // like Physician Name (First Name + Last Name) keep a stable, predictable
     // column order across saves/reloads instead of being re-sorted by timestamp.
@@ -36,9 +37,10 @@ mappingRouter.get("/", async (req: Request<MappingParams>, res: Response) => {
   );
 
   res.json({
-    mappings: mappings.map(({ standardizedField, rawColumnName }) => ({
+    mappings: mappings.map(({ standardizedField, rawColumnName, constantValue }) => ({
       standardizedField,
       rawColumnName,
+      constantValue: constantValue ?? null,
     })),
     updatedAt: latestUpdatedAt,
   });
@@ -57,6 +59,7 @@ mappingRouter.put("/", async (req: Request<MappingParams>, res: Response, next) 
             sourceSystemId,
             standardizedField: m.standardizedField,
             rawColumnName: m.rawColumnName,
+            constantValue: m.constantValue ?? null,
           },
         })
       ),
@@ -64,10 +67,10 @@ mappingRouter.put("/", async (req: Request<MappingParams>, res: Response, next) 
 
     const saved = await prisma.columnMapping.findMany({
       where: { sourceSystemId },
-      select: { standardizedField: true, rawColumnName: true },
+      select: { standardizedField: true, rawColumnName: true, constantValue: true },
       orderBy: { id: "asc" },
     });
-    res.json({ mappings: saved });
+    res.json({ mappings: saved.map(m => ({ ...m, constantValue: m.constantValue ?? null })) });
   } catch (err) {
     next(err);
   }

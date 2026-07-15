@@ -15,6 +15,7 @@ export interface RawFileData {
 export interface MappingEntry {
   standardizedField: StandardizedField;
   rawColumnName: string;
+  constantValue?: string | null;
 }
 
 export interface SavedMapping {
