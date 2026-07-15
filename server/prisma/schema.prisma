@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  sourceSystems SourceSystem[]
+}
+
+model SourceSystem {
+  id             Int             @id @default(autoincrement())
+  clientId       Int
+  name           String
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  columnMappings ColumnMapping[]
+  uploadBatches  UploadBatch[]
+  createdAt      DateTime        @default(now())
+
+  @@unique([clientId, name])
+}
+
+model ColumnMapping {
+  id                Int          @id @default(autoincrement())
+  sourceSystemId    Int
+  sourceSystem      SourceSystem @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
+  standardizedField String
+  rawColumnName     String
+  constantValue     String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([sourceSystemId, standardizedField, rawColumnName])
+}
+
+model UploadBatch {
+  id             Int                  @id @default(autoincrement())
+  sourceSystemId Int
+  sourceSystem   SourceSystem         @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
+  fileName       String?
+  uploadedAt     DateTime             @default(now())
+  records        StandardizedRecord[]
+}
+
+model StandardizedRecord {
+  id                   Int         @id @default(autoincrement())
+  uploadBatchId        Int
+  uploadBatch          UploadBatch @relation(fields: [uploadBatchId], references: [id], onDelete: Cascade)
+  physicianName        String?
+  physicianNpi         String?
+  physicianDesignation String?
+  transferOfValue      String?
+  amount               Float?
+  date                 String?
+}
