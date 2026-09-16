@@ -14,9 +14,12 @@ const mappingBodySchema = z.object({
   mappings: z.array(
     z.object({
       standardizedField: z.enum(STANDARDIZED_FIELDS),
-      rawColumnName: z.string().trim().min(1),
+      rawColumnName: z.string().trim(),
       constantValue: z.string().nullable().optional(),
-    })
+    }).refine(
+      (obj) => obj.constantValue || obj.rawColumnName.length > 0,
+      "Either rawColumnName or constantValue must be provided"
+    )
   ),
 });
 
