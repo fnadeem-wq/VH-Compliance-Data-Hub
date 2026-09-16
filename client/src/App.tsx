@@ -29,17 +29,11 @@ export function App() {
           <div className="flex items-center justify-between">
             <button
               onClick={goHome}
-              className="flex items-center gap-4 group transition-all hover:opacity-90"
+              className="group transition-all hover:opacity-90"
             >
-              <div className="rounded-xl bg-gradient-to-br from-primary/10 to-transparent p-2.5 group-hover:from-primary/20 transition-colors border border-primary/20 group-hover:border-primary/40">
-                <img src={vhLogo} alt="Vector Health Compliance" className="h-10 w-auto" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-                  Vector Health
-                </h1>
-                <p className="text-xs text-charcoal/60 font-medium">Compliance Data Hub</p>
-              </div>
+              <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                Vector Health Compliance Data Hub
+              </h1>
             </button>
             {view === "home" && (
               <button
