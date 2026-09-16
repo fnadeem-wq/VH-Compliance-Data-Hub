@@ -68,12 +68,11 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
         recordsApi.list(clientId, editSourceSystemId),
       ]);
       dispatch({
-        type: "SELECT_SOURCE_SYSTEM",
+        type: "SELECT_SOURCE_SYSTEM_FOR_EDITING",
         sourceSystemId: editSourceSystemId,
         savedMapping,
         history: recordsRes.records,
       });
-      dispatch({ type: "EDIT_MAPPING" });
     })();
   }, [clientId, editSourceSystemId]);
 

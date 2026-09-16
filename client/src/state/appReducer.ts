@@ -45,6 +45,12 @@ export type Action =
   | { type: "CHOOSE_USE_SAVED_MAPPING" }
   | { type: "CHOOSE_CREATE_NEW_MAPPING" }
   | { type: "EDIT_MAPPING" }
+  | {
+      type: "SELECT_SOURCE_SYSTEM_FOR_EDITING";
+      sourceSystemId: number;
+      savedMapping: SavedMapping | null;
+      history: StoredRecord[];
+    }
   | { type: "MAPPING_CONFIRMED"; mapping: MappingEntry[]; savedMapping: SavedMapping }
   | { type: "APPEND_SUCCESS"; history: StoredRecord[] }
   | { type: "UPLOAD_NEW_FILE" }
@@ -150,6 +156,21 @@ export function appReducer(state: AppState, action: Action): AppState {
         step: "MAPPING",
         pendingFile: null,
         rawFileData: null,
+      };
+
+    case "SELECT_SOURCE_SYSTEM_FOR_EDITING":
+      return {
+        ...state,
+        selectedSourceSystemId: action.sourceSystemId,
+        savedMapping: action.savedMapping,
+        history: action.history,
+        draftMapping: action.savedMapping?.mappings ?? [],
+        step: "MAPPING",
+        pendingFile: null,
+        workbookSheetNames: null,
+        rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
       };
 
     case "MAPPING_CONFIRMED":
