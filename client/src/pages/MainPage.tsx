@@ -57,21 +57,23 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
       dispatch({ type: "SELECT_CLIENT", clientId });
       const sourceSystems = await sourceSystemsApi.list(clientId);
       dispatch({ type: "SET_SOURCE_SYSTEMS", sourceSystems });
+    })();
+  }, [clientId]);
 
-      // Auto-select and edit mapping if editSourceSystemId is provided
-      if (editSourceSystemId) {
-        const [savedMapping, recordsRes] = await Promise.all([
-          mappingApi.get(clientId, editSourceSystemId),
-          recordsApi.list(clientId, editSourceSystemId),
-        ]);
-        dispatch({
-          type: "SELECT_SOURCE_SYSTEM",
-          sourceSystemId: editSourceSystemId,
-          savedMapping,
-          history: recordsRes.records,
-        });
-        dispatch({ type: "EDIT_MAPPING" });
-      }
+  useEffect(() => {
+    if (!editSourceSystemId) return;
+    (async () => {
+      const [savedMapping, recordsRes] = await Promise.all([
+        mappingApi.get(clientId, editSourceSystemId),
+        recordsApi.list(clientId, editSourceSystemId),
+      ]);
+      dispatch({
+        type: "SELECT_SOURCE_SYSTEM",
+        sourceSystemId: editSourceSystemId,
+        savedMapping,
+        history: recordsRes.records,
+      });
+      dispatch({ type: "EDIT_MAPPING" });
     })();
   }, [clientId, editSourceSystemId]);
 
