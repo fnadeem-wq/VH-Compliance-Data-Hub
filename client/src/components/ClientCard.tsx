@@ -38,7 +38,7 @@ export function ClientCard({ client, onClick, onClientsChanged }: ClientCardProp
     <>
       <div
         onClick={onClick}
-        className="group rounded-xl border-2 border-primary/20 p-6 bg-gradient-to-br from-white to-primary-light/5 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-300 relative overflow-hidden"
+        className="group rounded-xl border-2 border-primary/20 p-8 min-h-[240px] flex flex-col justify-between bg-gradient-to-br from-white to-primary-light/5 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-300 relative overflow-hidden"
       >
         {/* Background accent */}
         <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-300"></div>
@@ -83,7 +83,7 @@ export function ClientCard({ client, onClick, onClientsChanged }: ClientCardProp
           )}
         </div>
 
-        <h3 className="text-lg font-bold text-primary mb-4 pr-6 group-hover:text-primary-dark transition-colors relative z-10">
+        <h3 className="text-2xl font-extrabold text-primary mb-6 pr-6 group-hover:text-primary-dark transition-colors relative z-10">
           {client.name}
         </h3>
         <div className="space-y-2 relative z-10">

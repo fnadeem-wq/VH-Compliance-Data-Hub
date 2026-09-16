@@ -40,9 +40,9 @@ export function HomePage({ onSelectClient }: HomePageProps) {
         <div className="mx-auto max-w-[1400px]">
           <div className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 px-8 py-8 text-center shadow-xl">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Healthcare Data Standardization Hub
+              Vector Health Compliance Data Hub
             </h1>
-            <p className="text-base md:text-lg text-white/90 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base md:text-lg text-white font-semibold leading-relaxed max-w-3xl mx-auto">
               Transform raw healthcare data into standardized, compliant records.
               Upload, map, and standardize with confidence using our proven
               compliance data hub.

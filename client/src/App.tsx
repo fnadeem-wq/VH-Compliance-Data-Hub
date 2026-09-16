@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HomePage } from "./pages/HomePage";
 import { UploadLogPage } from "./pages/UploadLogPage";
 import { MainPage } from "./pages/MainPage";
+import vhLogo from "./assets/vh-logo.png";
 
 type View = "home" | "uploadLog" | "clientDetail";
 
@@ -31,9 +32,7 @@ export function App() {
               onClick={goHome}
               className="group transition-all hover:opacity-90"
             >
-              <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-                Vector Health Compliance Data Hub
-              </h1>
+              <img src={vhLogo} alt="Vector Health Compliance" className="h-12 w-auto" />
             </button>
             {view === "home" && (
               <button
