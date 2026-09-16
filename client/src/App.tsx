@@ -25,28 +25,34 @@ export function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-border bg-white">
+      <header className="border-b-2 border-primary/10 bg-gradient-to-r from-white via-white to-primary-light/5 backdrop-blur-sm shadow-sm">
         <div className="mx-auto max-w-[1400px] px-6 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={goHome}
-              className="flex items-center gap-3 transition-opacity hover:opacity-75"
+              className="flex items-center gap-4 group transition-all hover:opacity-90"
             >
-              <h1 className="text-xl font-bold text-primary">
-                Vector Health Compliance Data Hub
-              </h1>
+              <div className="rounded-xl bg-gradient-to-br from-primary/10 to-transparent p-2.5 group-hover:from-primary/20 transition-colors border border-primary/20 group-hover:border-primary/40">
+                <img src={vhLogo} alt="Vector Health Compliance" className="h-10 w-auto" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                  Vector Health
+                </h1>
+                <p className="text-xs text-charcoal/60 font-medium">Compliance Data Hub</p>
+              </div>
             </button>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-end gap-3">
               <button
                 onClick={goHome}
-                className="rounded-lg bg-accent-light p-2 hover:bg-accent transition-colors"
+                className="rounded-xl bg-gradient-to-br from-primary/10 to-transparent p-2.5 hover:from-primary/20 transition-all border border-primary/20 hover:border-primary/40 hover:shadow-md"
               >
                 <img src={vhLogo} alt="Vector Health Compliance" className="h-12 w-auto" />
               </button>
               {view === "home" && (
                 <button
                   onClick={goToUploadLog}
-                  className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark hover:underline"
+                  className="px-4 py-1.5 text-sm font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-all border border-primary/20 hover:border-primary/40"
                 >
                   Upload Log
                 </button>

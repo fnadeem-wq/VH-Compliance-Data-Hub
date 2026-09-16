@@ -33,17 +33,23 @@ export function ClientCarousel({
 
   if (clients.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-charcoal/70">
-          No clients yet — create one below to get started.
+      <div className="text-center py-16">
+        <div className="mb-4">
+          <div className="inline-block text-4xl mb-4">📋</div>
+        </div>
+        <p className="text-lg text-charcoal/70 font-medium">
+          No organizations yet
+        </p>
+        <p className="text-sm text-charcoal/50 mt-2">
+          Create your first organization below to get started
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {visibleSlice.map((client) => (
           <ClientCard
             key={client.id}
@@ -54,27 +60,27 @@ export function ClientCarousel({
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-4 border-t border-primary/10">
         <button
           onClick={handlePrev}
           disabled={page === 0}
-          className="text-2xl text-primary hover:text-primary-dark disabled:text-charcoal/30 disabled:cursor-not-allowed transition-colors"
+          className="group p-2 rounded-lg text-primary hover:text-white hover:bg-primary disabled:text-charcoal/30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
           aria-label="Previous page"
         >
-          ‹
+          <span className="text-2xl font-light">‹</span>
         </button>
 
-        <p className="text-sm text-charcoal/70">
-          Showing {visibleSlice.length} of {clients.length}
+        <p className="text-sm font-medium text-charcoal/70">
+          Showing <span className="text-primary font-bold">{visibleSlice.length}</span> of <span className="text-primary font-bold">{clients.length}</span>
         </p>
 
         <button
           onClick={handleNext}
           disabled={page >= totalPages - 1}
-          className="text-2xl text-primary hover:text-primary-dark disabled:text-charcoal/30 disabled:cursor-not-allowed transition-colors"
+          className="group p-2 rounded-lg text-primary hover:text-white hover:bg-primary disabled:text-charcoal/30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
           aria-label="Next page"
         >
-          ›
+          <span className="text-2xl font-light">›</span>
         </button>
       </div>
     </div>

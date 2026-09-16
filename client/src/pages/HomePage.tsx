@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { clientsApi, type ClientSummary } from "../api/clients";
 import { ClientCarousel } from "../components/ClientCarousel";
 import { EntityModal } from "../components/EntityModal";
+import { SkeletonCarousel } from "../components/SkeletonLoader";
 
 interface HomePageProps {
   onSelectClient: (clientId: number) => void;
@@ -9,11 +10,17 @@ interface HomePageProps {
 
 export function HomePage({ onSelectClient }: HomePageProps) {
   const [clients, setClients] = useState<ClientSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const loadClients = async () => {
-    const summary = await clientsApi.summary();
-    setClients(summary);
+    setIsLoading(true);
+    try {
+      const summary = await clientsApi.summary();
+      setClients(summary);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -27,12 +34,15 @@ export function HomePage({ onSelectClient }: HomePageProps) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)]">
+    <div className="min-h-[calc(100vh-200px)] bg-gradient-to-b from-white to-primary-light/10">
       {/* Banner Section */}
-      <section className="bg-primary px-6 py-8">
+      <section className="bg-gradient-to-r from-primary to-primary-dark px-6 py-12">
         <div className="mx-auto max-w-[1400px]">
-          <div className="rounded-lg bg-primary-dark px-8 py-6 text-center">
-            <p className="text-lg text-primary-light">
+          <div className="rounded-xl backdrop-blur-sm bg-white/10 border border-white/20 px-8 py-8 text-center shadow-xl">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Healthcare Data Standardization Hub
+            </h1>
+            <p className="text-base md:text-lg text-white/90 leading-relaxed max-w-3xl mx-auto">
               Transform raw healthcare data into standardized, compliant records.
               Upload, map, and standardize with confidence using our proven
               compliance data hub.
@@ -42,33 +52,58 @@ export function HomePage({ onSelectClient }: HomePageProps) {
       </section>
 
       {/* Client Selection Section */}
-      <section className="px-6 py-16">
+      <section className="px-6 py-16 md:py-20">
         <div className="mx-auto max-w-[1400px]">
-          <h2 className="mb-8 text-2xl font-bold text-primary">
-            Pick Client Name
-          </h2>
-
-          <div className="rounded-lg border-2 border-primary p-8 bg-white">
-            <ClientCarousel
-              clients={clients}
-              onSelectClient={onSelectClient}
-              onClientsChanged={loadClients}
-            />
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2">
+              Select Your Organization
+            </h2>
+            <p className="text-charcoal/60">
+              Choose a client to view and manage your compliance data
+            </p>
           </div>
 
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="mt-6 text-primary hover:text-primary-dark hover:underline font-medium"
-          >
-            Create a new Client Name +
-          </button>
+          {/* Snowy Border Carousel Container */}
+          <div className="relative">
+            {/* Background glow */}
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+            {/* Carousel with snowy border */}
+            <div className="relative rounded-2xl border-2 border-primary/20 bg-white/80 backdrop-blur-sm p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300 hover:border-primary/40">
+              {/* Decorative corner accents */}
+              <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/30 rounded-tl-xl"></div>
+              <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/30 rounded-tr-xl"></div>
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary/30 rounded-bl-xl"></div>
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-xl"></div>
+
+              {isLoading ? (
+                <SkeletonCarousel />
+              ) : (
+                <ClientCarousel
+                  clients={clients}
+                  onSelectClient={onSelectClient}
+                  onClientsChanged={loadClients}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Create Button */}
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="group relative px-8 py-3 rounded-lg font-semibold text-primary hover:text-white bg-transparent border-2 border-primary hover:bg-primary transition-all duration-300 shadow-sm hover:shadow-md"
+            >
+              <span className="relative z-10">+ Create New Organization</span>
+            </button>
+          </div>
         </div>
       </section>
 
       {isCreateModalOpen && (
         <EntityModal
-          title="Create Client"
-          label="Client name"
+          title="Create Organization"
+          label="Organization name"
           confirmLabel="Create"
           onConfirm={handleCreateClient}
           onClose={() => setIsCreateModalOpen(false)}

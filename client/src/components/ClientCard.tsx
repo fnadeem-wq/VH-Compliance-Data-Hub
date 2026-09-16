@@ -38,30 +38,34 @@ export function ClientCard({ client, onClick, onClientsChanged }: ClientCardProp
     <>
       <div
         onClick={onClick}
-        className="rounded-lg border-2 border-primary p-6 bg-white cursor-pointer hover:shadow-lg transition-shadow relative"
+        className="group rounded-xl border-2 border-primary/20 p-6 bg-gradient-to-br from-white to-primary-light/5 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-300 relative overflow-hidden"
       >
+        {/* Background accent */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-300"></div>
+
+        {/* Menu Button */}
         <div
           onClick={(e) => {
             e.stopPropagation();
             setIsMenuOpen(!isMenuOpen);
           }}
-          className="absolute top-4 right-4"
+          className="absolute top-4 right-4 z-20"
         >
           <button
-            className="p-1 hover:bg-bg-subtle rounded-full text-charcoal"
+            className="p-1 hover:bg-primary/10 rounded-full text-primary group-hover:text-primary transition-colors"
             aria-label="Menu"
           >
             ⋮
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-1 bg-white border border-border rounded-lg shadow-card z-10">
+            <div className="absolute right-0 mt-1 bg-white border border-primary/20 rounded-lg shadow-lg z-10 min-w-[120px]">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsRenameModalOpen(true);
                   setIsMenuOpen(false);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-charcoal hover:bg-bg-subtle"
+                className="block w-full text-left px-4 py-2 text-sm text-charcoal hover:bg-primary/10 transition-colors"
               >
                 Rename
               </button>
@@ -71,7 +75,7 @@ export function ClientCard({ client, onClick, onClientsChanged }: ClientCardProp
                   setIsDeleteModalOpen(true);
                   setIsMenuOpen(false);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-error hover:bg-bg-subtle border-t border-border"
+                className="block w-full text-left px-4 py-2 text-sm text-error hover:bg-error/10 border-t border-primary/10 transition-colors"
               >
                 Delete
               </button>
@@ -79,15 +83,18 @@ export function ClientCard({ client, onClick, onClientsChanged }: ClientCardProp
           )}
         </div>
 
-        <h3 className="text-lg font-semibold text-primary mb-3 pr-6">
+        <h3 className="text-lg font-bold text-primary mb-4 pr-6 group-hover:text-primary-dark transition-colors relative z-10">
           {client.name}
         </h3>
-        <p className="text-sm text-charcoal/70 mb-2">
-          Last modified on: {formattedDate}
-        </p>
-        <p className="text-sm text-charcoal/70">
-          Total Files: {client.totalFiles}
-        </p>
+        <div className="space-y-2 relative z-10">
+          <p className="text-sm text-charcoal/70 font-medium">
+            <span className="text-primary/60">Last modified:</span> {formattedDate}
+          </p>
+          <p className="text-sm text-charcoal/70 font-medium">
+            <span className="text-primary/60">Total Files:</span>{" "}
+            <span className="font-bold text-primary">{client.totalFiles}</span>
+          </p>
+        </div>
       </div>
 
       {isRenameModalOpen && (
