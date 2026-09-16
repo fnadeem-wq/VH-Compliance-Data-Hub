@@ -18,6 +18,25 @@ clientsRouter.get(
   })
 );
 
+clientsRouter.get(
+  "/summary",
+  asyncHandler(async (_req, res) => {
+    const clients = await prisma.client.findMany({
+      orderBy: { name: "asc" },
+      include: { sourceSystems: { include: { uploadBatches: { select: { uploadedAt: true } } } } },
+    });
+    const summary = clients.map((c) => {
+      const batches = c.sourceSystems.flatMap((s) => s.uploadBatches);
+      const totalFiles = batches.length;
+      const lastModifiedAt = totalFiles === 0
+        ? null
+        : new Date(Math.max(...batches.map((b) => b.uploadedAt.getTime()))).toISOString();
+      return { id: c.id, name: c.name, lastModifiedAt, totalFiles };
+    });
+    res.json(summary);
+  })
+);
+
 clientsRouter.post(
   "/",
   asyncHandler(async (req, res) => {

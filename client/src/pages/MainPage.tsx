@@ -20,34 +20,29 @@ import { appReducer, initialState } from "../state/appReducer";
 import type { MappingEntry, StoredRecord } from "../state/types";
 
 interface MainPageProps {
-  /** When set (e.g. arriving from the Home Screen's "Upload File" button), this
-   * exact Client + Source System pair is selected automatically instead of
-   * requiring the user to re-pick it. */
-  initialSelection?: { clientId: number; sourceSystemId: number };
+  clientId: number;
 }
 
-export function MainPage({ initialSelection }: MainPageProps) {
+export function MainPage({ clientId }: MainPageProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const workbookRef = useRef<XLSX.WorkBook | null>(null);
   const [clientWideRecords, setClientWideRecords] = useState<StoredRecord[] | null>(null);
   const [isLoadingClientWide, setIsLoadingClientWide] = useState(false);
+  const [isPickingSourceSystem, setIsPickingSourceSystem] = useState(false);
 
   const selectedClient = state.clients.find((c) => c.id === state.selectedClientId) ?? null;
   const selectedSourceSystem =
     state.sourceSystems.find((s) => s.id === state.selectedSourceSystemId) ?? null;
 
-  // When a Client is selected but no specific Source System is chosen, show a
-  // read-only view combining every record across all of that client's source
-  // systems, appended together -- there's no single pair to upload into here.
   useEffect(() => {
     if (state.selectedClientId == null || state.selectedSourceSystemId != null) {
       setClientWideRecords(null);
       return;
     }
-    const clientId = state.selectedClientId;
+    const loadClientRecords = state.selectedClientId;
     setIsLoadingClientWide(true);
     clientsApi
-      .records(clientId)
+      .records(loadClientRecords)
       .then((res) => setClientWideRecords(res.records))
       .finally(() => setIsLoadingClientWide(false));
   }, [state.selectedClientId, state.selectedSourceSystemId]);
@@ -57,45 +52,24 @@ export function MainPage({ initialSelection }: MainPageProps) {
       const clients = await clientsApi.list();
       dispatch({ type: "SET_CLIENTS", clients });
 
-      if (!initialSelection) return;
-      const { clientId, sourceSystemId } = initialSelection;
-
       dispatch({ type: "SELECT_CLIENT", clientId });
       const sourceSystems = await sourceSystemsApi.list(clientId);
       dispatch({ type: "SET_SOURCE_SYSTEMS", sourceSystems });
-
-      const [savedMapping, recordsRes] = await Promise.all([
-        mappingApi.get(clientId, sourceSystemId),
-        recordsApi.list(clientId, sourceSystemId),
-      ]);
-      dispatch({
-        type: "SELECT_SOURCE_SYSTEM",
-        sourceSystemId,
-        savedMapping,
-        history: recordsRes.records,
-      });
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function handleSelectClient(clientId: number | null) {
-    dispatch({ type: "SELECT_CLIENT", clientId });
-    if (clientId == null) return;
-    const sourceSystems = await sourceSystemsApi.list(clientId);
-    dispatch({ type: "SET_SOURCE_SYSTEMS", sourceSystems });
-  }
+  }, [clientId]);
 
   async function handleSelectSourceSystem(sourceSystemId: number | null) {
-    if (sourceSystemId == null || state.selectedClientId == null) {
+    if (sourceSystemId == null) {
       dispatch({
         type: "SELECT_SOURCE_SYSTEM",
         sourceSystemId: null,
         savedMapping: null,
         history: [],
       });
+      setIsPickingSourceSystem(false);
       return;
     }
-    const clientId = state.selectedClientId;
+
     const [savedMapping, recordsRes] = await Promise.all([
       mappingApi.get(clientId, sourceSystemId),
       recordsApi.list(clientId, sourceSystemId),
@@ -106,6 +80,7 @@ export function MainPage({ initialSelection }: MainPageProps) {
       savedMapping,
       history: recordsRes.records,
     });
+    setIsPickingSourceSystem(false);
   }
 
   async function handleFileSelected(file: File) {
@@ -135,9 +110,9 @@ export function MainPage({ initialSelection }: MainPageProps) {
   }
 
   async function handleMappingConfirmed(mapping: MappingEntry[]) {
-    if (state.selectedClientId == null || state.selectedSourceSystemId == null) return;
+    if (state.selectedSourceSystemId == null) return;
     const saveResult = await mappingApi.save(
-      state.selectedClientId,
+      clientId,
       state.selectedSourceSystemId,
       mapping
     );
@@ -150,11 +125,7 @@ export function MainPage({ initialSelection }: MainPageProps) {
 
   useEffect(() => {
     if (state.step !== "APPENDING") return;
-    if (
-      !state.rawFileData ||
-      state.selectedClientId == null ||
-      state.selectedSourceSystemId == null
-    ) {
+    if (!state.rawFileData || state.selectedSourceSystemId == null) {
       return;
     }
 
@@ -163,7 +134,7 @@ export function MainPage({ initialSelection }: MainPageProps) {
 
     recordsApi
       .append(
-        state.selectedClientId,
+        clientId,
         state.selectedSourceSystemId,
         standardizedRows,
         state.pendingFile?.name
@@ -177,8 +148,7 @@ export function MainPage({ initialSelection }: MainPageProps) {
           error: err instanceof Error ? err.message : "Failed to save records",
         });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.step]);
+  }, [state.step, clientId]);
 
   const fileNamePrefix = `${selectedClient?.name ?? "client"}_${
     selectedSourceSystem?.name ?? "source"
@@ -187,89 +157,10 @@ export function MainPage({ initialSelection }: MainPageProps) {
   return (
     <div className="min-h-[calc(100vh-200px)]">
       <div className="mx-auto max-w-[1400px] px-6 py-6 space-y-6">
-        {/* Selection Header */}
-        <section className="rounded-lg bg-white p-6 shadow-card border-l-4 border-primary">
-          <h2 className="mb-6 text-2xl font-bold text-primary">Data Upload & Mapping</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <EntityPicker
-              label="Client"
-              placeholder="Select a client…"
-              entities={state.clients}
-              selectedId={state.selectedClientId}
-              addLabel="Add Client"
-              addFieldLabel="Client name"
-              onSelect={handleSelectClient}
-              onAdd={async (name) => {
-                const created = await clientsApi.create(name);
-                dispatch({ type: "SET_CLIENTS", clients: [...state.clients, created] });
-                await handleSelectClient(created.id);
-              }}
-              onRename={async (id, name) => {
-                const updated = await clientsApi.rename(id, name);
-                dispatch({
-                  type: "SET_CLIENTS",
-                  clients: state.clients.map((c) => (c.id === id ? updated : c)),
-                });
-              }}
-              onDelete={async (id) => {
-                await clientsApi.remove(id);
-                dispatch({ type: "SET_CLIENTS", clients: state.clients.filter((c) => c.id !== id) });
-                if (state.selectedClientId === id) await handleSelectClient(null);
-              }}
-              getRecordCount={async (id) => (await clientsApi.recordCount(id)).count}
-            />
-
-            <EntityPicker
-              label="Source System"
-              placeholder="Select a source system…"
-              entities={state.sourceSystems}
-              selectedId={state.selectedSourceSystemId}
-              disabled={state.selectedClientId == null}
-              addLabel="Add Source System"
-              addFieldLabel="Source system name"
-              onSelect={handleSelectSourceSystem}
-              onAdd={async (name) => {
-                if (state.selectedClientId == null) return;
-                const created = await sourceSystemsApi.create(state.selectedClientId, name);
-                dispatch({
-                  type: "SET_SOURCE_SYSTEMS",
-                  sourceSystems: [...state.sourceSystems, created],
-                });
-                await handleSelectSourceSystem(created.id);
-              }}
-              onRename={async (id, name) => {
-                if (state.selectedClientId == null) return;
-                const updated = await sourceSystemsApi.rename(state.selectedClientId, id, name);
-                dispatch({
-                  type: "SET_SOURCE_SYSTEMS",
-                  sourceSystems: state.sourceSystems.map((s) => (s.id === id ? updated : s)),
-                });
-              }}
-              onDelete={async (id) => {
-                if (state.selectedClientId == null) return;
-                await sourceSystemsApi.remove(state.selectedClientId, id);
-                dispatch({
-                  type: "SET_SOURCE_SYSTEMS",
-                  sourceSystems: state.sourceSystems.filter((s) => s.id !== id),
-                });
-                if (state.selectedSourceSystemId === id) await handleSelectSourceSystem(null);
-              }}
-              getRecordCount={async (id) =>
-                state.selectedClientId == null
-                  ? 0
-                  : (await sourceSystemsApi.recordCount(state.selectedClientId, id)).count
-              }
-            />
-          </div>
-          <Button
-            variant="secondary"
-            className="mt-6"
-            disabled={state.selectedSourceSystemId == null}
-            onClick={() => dispatch({ type: "UPLOAD_NEW_FILE" })}
-          >
-            Upload New File
-          </Button>
-        </section>
+        {/* Client Name Heading */}
+        <h1 className="text-3xl font-bold text-primary">
+          {selectedClient?.name ?? "Loading…"}
+        </h1>
 
         {/* Error Message */}
         {state.error && (
@@ -280,7 +171,7 @@ export function MainPage({ initialSelection }: MainPageProps) {
         )}
 
         {/* Client-wide Records View */}
-        {state.selectedClientId != null && state.selectedSourceSystemId == null && (
+        {state.selectedSourceSystemId == null && (
           <section className="rounded-lg bg-white p-6 shadow-card">
             {isLoadingClientWide && (
               <div className="flex items-center justify-center py-12">
@@ -289,21 +180,76 @@ export function MainPage({ initialSelection }: MainPageProps) {
             )}
             {!isLoadingClientWide && clientWideRecords && clientWideRecords.length === 0 && (
               <div className="rounded-lg bg-bg-subtle p-8 text-center">
-                <p className="text-charcoal/70">
+                <p className="text-charcoal/70 mb-4">
                   No records uploaded yet for this client, across any source system.
                 </p>
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsPickingSourceSystem(true)}
+                >
+                  Upload a new file +
+                </Button>
               </div>
             )}
             {!isLoadingClientWide && clientWideRecords && clientWideRecords.length > 0 && (
-              <StandardizedResultsTable
-                records={clientWideRecords}
-                onDownloadCsv={(rows) =>
-                  exportCsv(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
-                }
-                onDownloadExcel={(rows) =>
-                  exportExcel(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
-                }
-              />
+              <div className="space-y-4">
+                <StandardizedResultsTable
+                  records={clientWideRecords}
+                  onDownloadCsv={(rows) =>
+                    exportCsv(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
+                  }
+                  onDownloadExcel={(rows) =>
+                    exportExcel(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
+                  }
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsPickingSourceSystem(true)}
+                >
+                  Upload a new file +
+                </Button>
+              </div>
+            )}
+
+            {/* Inline Source System Picker */}
+            {isPickingSourceSystem && (
+              <div className="mt-6 rounded-lg border-2 border-primary p-6 bg-white">
+                <EntityPicker
+                  label="Source System"
+                  placeholder="Select a source system…"
+                  entities={state.sourceSystems}
+                  selectedId={state.selectedSourceSystemId}
+                  addLabel="Add Source System"
+                  addFieldLabel="Source system name"
+                  onSelect={handleSelectSourceSystem}
+                  onAdd={async (name) => {
+                    const created = await sourceSystemsApi.create(clientId, name);
+                    dispatch({
+                      type: "SET_SOURCE_SYSTEMS",
+                      sourceSystems: [...state.sourceSystems, created],
+                    });
+                    await handleSelectSourceSystem(created.id);
+                  }}
+                  onRename={async (id, name) => {
+                    const updated = await sourceSystemsApi.rename(clientId, id, name);
+                    dispatch({
+                      type: "SET_SOURCE_SYSTEMS",
+                      sourceSystems: state.sourceSystems.map((s) => (s.id === id ? updated : s)),
+                    });
+                  }}
+                  onDelete={async (id) => {
+                    await sourceSystemsApi.remove(clientId, id);
+                    dispatch({
+                      type: "SET_SOURCE_SYSTEMS",
+                      sourceSystems: state.sourceSystems.filter((s) => s.id !== id),
+                    });
+                    if (state.selectedSourceSystemId === id) await handleSelectSourceSystem(null);
+                  }}
+                  getRecordCount={async (id) =>
+                    (await sourceSystemsApi.recordCount(clientId, id)).count
+                  }
+                />
+              </div>
             )}
           </section>
         )}
@@ -311,6 +257,15 @@ export function MainPage({ initialSelection }: MainPageProps) {
         {/* Upload Workflow Sections */}
         {state.selectedSourceSystemId != null && (
           <section className="space-y-6">
+            <div>
+              <button
+                onClick={() => handleSelectSourceSystem(null)}
+                className="text-primary hover:text-primary-dark hover:underline text-sm font-medium mb-4"
+              >
+                ‹ Back to {selectedClient?.name} overview
+              </button>
+            </div>
+
             {(state.step === "AWAITING_UPLOAD" || state.step === "SHEET_PICKER") && (
               <FileUpload onFileSelected={handleFileSelected} />
             )}
@@ -374,12 +329,20 @@ export function MainPage({ initialSelection }: MainPageProps) {
             )}
 
             {state.step === "RESULTS" && (
-              <StandardizedResultsTable
-                records={state.history}
-                onDownloadCsv={(rows) => exportCsv(rows, fileNamePrefix)}
-                onDownloadExcel={(rows) => exportExcel(rows, fileNamePrefix)}
-                onEditMapping={() => dispatch({ type: "EDIT_MAPPING" })}
-              />
+              <div className="space-y-4">
+                <StandardizedResultsTable
+                  records={state.history}
+                  onDownloadCsv={(rows) => exportCsv(rows, fileNamePrefix)}
+                  onDownloadExcel={(rows) => exportExcel(rows, fileNamePrefix)}
+                  onEditMapping={() => dispatch({ type: "EDIT_MAPPING" })}
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => dispatch({ type: "UPLOAD_NEW_FILE" })}
+                >
+                  Upload another file +
+                </Button>
+              </div>
             )}
           </section>
         )}

@@ -1,20 +1,26 @@
 import { useState } from "react";
 import vhLogo from "./assets/vh-logo.png";
 import { HomePage } from "./pages/HomePage";
+import { UploadLogPage } from "./pages/UploadLogPage";
 import { MainPage } from "./pages/MainPage";
 
-type View = "home" | "upload";
+type View = "home" | "uploadLog" | "clientDetail";
 
 export function App() {
   const [view, setView] = useState<View>("home");
-  const [pendingSelection, setPendingSelection] = useState<{
-    clientId: number;
-    sourceSystemId: number;
-  } | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
-  function goToUploadWithSelection(clientId: number, sourceSystemId: number) {
-    setPendingSelection({ clientId, sourceSystemId });
-    setView("upload");
+  function goHome() {
+    setView("home");
+  }
+
+  function goToUploadLog() {
+    setView("uploadLog");
+  }
+
+  function goToClientDetail(clientId: number) {
+    setSelectedClientId(clientId);
+    setView("clientDetail");
   }
 
   return (
@@ -23,48 +29,38 @@ export function App() {
         <div className="mx-auto max-w-[1400px] px-6 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setView("home")}
+              onClick={goHome}
               className="flex items-center gap-3 transition-opacity hover:opacity-75"
             >
-              <div className="rounded-lg bg-accent-light p-2">
-                <img src={vhLogo} alt="Vector Health Compliance" className="h-8 w-auto" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-xl font-bold text-primary">VH Compliance</h1>
-                <p className="text-xs text-charcoal/60">Data Standardization</p>
-              </div>
+              <h1 className="text-xl font-bold text-primary">
+                Vector Health Compliance Data Hub
+              </h1>
             </button>
-            <nav className="flex items-center gap-6">
+            <div className="flex flex-col items-end gap-2">
               <button
-                onClick={() => setView("home")}
-                className={`text-sm font-medium transition-colors ${
-                  view === "home"
-                    ? "text-primary"
-                    : "text-charcoal hover:text-primary"
-                }`}
+                onClick={goHome}
+                className="rounded-lg bg-accent-light p-2 hover:bg-accent transition-colors"
               >
-                Dashboard
+                <img src={vhLogo} alt="Vector Health Compliance" className="h-12 w-auto" />
               </button>
-              <button
-                onClick={() => setView("upload")}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  view === "upload"
-                    ? "bg-primary text-white"
-                    : "bg-accent-light text-primary hover:bg-accent"
-                }`}
-              >
-                Upload
-              </button>
-            </nav>
+              {view === "home" && (
+                <button
+                  onClick={goToUploadLog}
+                  className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark hover:underline"
+                >
+                  Upload Log
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {view === "home" ? (
-          <HomePage onNavigateToUpload={goToUploadWithSelection} />
-        ) : (
-          <MainPage initialSelection={pendingSelection ?? undefined} />
+        {view === "home" && <HomePage onSelectClient={goToClientDetail} />}
+        {view === "uploadLog" && <UploadLogPage onSelectClient={goToClientDetail} />}
+        {view === "clientDetail" && selectedClientId && (
+          <MainPage key={selectedClientId} clientId={selectedClientId} />
         )}
       </main>
 

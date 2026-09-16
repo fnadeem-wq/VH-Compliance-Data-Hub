@@ -16,6 +16,7 @@ export default {
         border: "var(--color-border)",
         success: "var(--color-success)",
         error: "var(--color-error)",
+        orange: "var(--color-orange)",
         white: "var(--color-white)",
       },
       fontFamily: {
