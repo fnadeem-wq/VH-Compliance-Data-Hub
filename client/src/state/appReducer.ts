@@ -159,6 +159,9 @@ export function appReducer(state: AppState, action: Action): AppState {
       };
 
     case "SELECT_SOURCE_SYSTEM_FOR_EDITING":
+      const mappingHeaders = action.savedMapping?.mappings
+        .filter((m) => m.rawColumnName.length > 0)
+        .map((m) => m.rawColumnName) ?? [];
       return {
         ...state,
         selectedSourceSystemId: action.sourceSystemId,
@@ -168,7 +171,9 @@ export function appReducer(state: AppState, action: Action): AppState {
         step: "MAPPING",
         pendingFile: null,
         workbookSheetNames: null,
-        rawFileData: null,
+        rawFileData: mappingHeaders.length > 0
+          ? { headers: mappingHeaders, rows: [] }
+          : null,
         rawParsedRows: null,
         startingRowIndex: 0,
       };
