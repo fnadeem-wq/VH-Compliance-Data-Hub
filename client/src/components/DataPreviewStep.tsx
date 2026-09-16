@@ -22,7 +22,7 @@ export function DataPreviewStep({
   }
 
   const previewRows = rawParsedRows.slice(0, 25);
-  const maxCols = Math.max(...rawParsedRows.map((row) => row.length), 10);
+  const maxCols = Math.max(...previewRows.map((row) => row.length || 0), 10);
 
   return (
     <div className="space-y-6">

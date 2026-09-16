@@ -6,6 +6,7 @@ export function parseRawCsvRows(file: File): Promise<string[][]> {
   return new Promise((resolve, reject) => {
     Papa.parse<string[]>(file, {
       header: false,
+      skipEmptyLines: true,
       complete: (results) => {
         resolve(results.data as string[][]);
       },
