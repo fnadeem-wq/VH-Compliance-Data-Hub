@@ -1,5 +1,4 @@
 import { useState } from "react";
-import vhLogo from "./assets/vh-logo.png";
 import { HomePage } from "./pages/HomePage";
 import { UploadLogPage } from "./pages/UploadLogPage";
 import { MainPage } from "./pages/MainPage";
@@ -42,22 +41,14 @@ export function App() {
                 <p className="text-xs text-charcoal/60 font-medium">Compliance Data Hub</p>
               </div>
             </button>
-            <div className="flex flex-col items-end gap-3">
+            {view === "home" && (
               <button
-                onClick={goHome}
-                className="rounded-xl bg-gradient-to-br from-primary/10 to-transparent p-2.5 hover:from-primary/20 transition-all border border-primary/20 hover:border-primary/40 hover:shadow-md"
+                onClick={goToUploadLog}
+                className="px-4 py-1.5 text-sm font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-all border border-primary/20 hover:border-primary/40"
               >
-                <img src={vhLogo} alt="Vector Health Compliance" className="h-12 w-auto" />
+                Upload Log
               </button>
-              {view === "home" && (
-                <button
-                  onClick={goToUploadLog}
-                  className="px-4 py-1.5 text-sm font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-all border border-primary/20 hover:border-primary/40"
-                >
-                  Upload Log
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </header>
