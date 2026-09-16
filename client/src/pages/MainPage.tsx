@@ -7,6 +7,7 @@ import { recordsApi } from "../api/records";
 import { Button } from "../components/ui/Button";
 import { ColumnMappingTable } from "../components/ColumnMappingTable";
 import { EntityPicker } from "../components/EntityPicker";
+import { DataPreviewStep } from "../components/DataPreviewStep";
 import { FileUpload } from "../components/FileUpload";
 import { MappingChoiceModal } from "../components/MappingChoiceModal";
 import { SheetPickerModal } from "../components/SheetPickerModal";
@@ -14,8 +15,8 @@ import { StandardizedResultsTable } from "../components/StandardizedResultsTable
 import { exportCsv } from "../lib/exportCsv";
 import { exportExcel } from "../lib/exportExcel";
 import { buildStandardizedTable } from "../lib/buildStandardizedTable";
-import { parseCsv } from "../lib/parseCsv";
-import { parseWorkbookSheet, readWorkbookSheetNames } from "../lib/parseExcel";
+import { parseRawCsvRows, buildRawFileDataFromRows as buildRawFileDataFromCsvRows } from "../lib/parseCsv";
+import { parseWorkbookSheet, parseWorkbookSheetRawRows, readWorkbookSheetNames, buildRawFileDataFromRows as buildRawFileDataFromExcelRows } from "../lib/parseExcel";
 import { appReducer, initialState } from "../state/appReducer";
 import type { MappingEntry, StoredRecord } from "../state/types";
 
@@ -88,8 +89,8 @@ export function MainPage({ clientId }: MainPageProps) {
     const extension = file.name.split(".").pop()?.toLowerCase();
 
     if (extension === "csv") {
-      const rawFileData = await parseCsv(file);
-      dispatch({ type: "RAW_DATA_READY", rawFileData });
+      const rawParsedRows = await parseRawCsvRows(file);
+      dispatch({ type: "RAW_PARSED_ROWS_READY", rawParsedRows });
       return;
     }
 
@@ -98,15 +99,21 @@ export function MainPage({ clientId }: MainPageProps) {
     if (sheetNames.length > 1) {
       dispatch({ type: "SHEET_NAMES_READY", sheetNames });
     } else {
-      const rawFileData = parseWorkbookSheet(workbook, sheetNames[0]);
-      dispatch({ type: "RAW_DATA_READY", rawFileData });
+      const rawParsedRows = parseWorkbookSheetRawRows(workbook, sheetNames[0]);
+      dispatch({ type: "RAW_PARSED_ROWS_READY", rawParsedRows });
     }
   }
 
   function handleSheetChosen(sheetName: string) {
     if (!workbookRef.current) return;
-    const rawFileData = parseWorkbookSheet(workbookRef.current, sheetName);
-    dispatch({ type: "RAW_DATA_READY", rawFileData });
+    const rawParsedRows = parseWorkbookSheetRawRows(workbookRef.current, sheetName);
+    dispatch({ type: "RAW_PARSED_ROWS_READY", rawParsedRows });
+  }
+
+  function handleSelectStartingRow(startingRowIndex: number) {
+    if (!state.rawParsedRows) return;
+    const rawFileData = buildRawFileDataFromExcelRows(state.rawParsedRows, startingRowIndex);
+    dispatch({ type: "SELECT_STARTING_ROW", startingRowIndex, rawFileData });
   }
 
   async function handleMappingConfirmed(mapping: MappingEntry[]) {
@@ -275,6 +282,14 @@ export function MainPage({ clientId }: MainPageProps) {
                 sheetNames={state.workbookSheetNames}
                 onChoose={handleSheetChosen}
                 onClose={() => dispatch({ type: "RESET_UPLOAD" })}
+              />
+            )}
+
+            {state.step === "DATA_PREVIEW" && state.rawParsedRows && (
+              <DataPreviewStep
+                rawParsedRows={state.rawParsedRows}
+                onSelectStartingRow={handleSelectStartingRow}
+                isLoading={state.isLoading}
               />
             )}
 

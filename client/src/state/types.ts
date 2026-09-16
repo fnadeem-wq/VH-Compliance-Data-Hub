@@ -42,6 +42,7 @@ export interface StoredRecord extends StandardizedRow {
 
 export type AppStep =
   | "AWAITING_UPLOAD"
+  | "DATA_PREVIEW"
   | "SHEET_PICKER"
   | "MAPPING_CHOICE"
   | "MAPPING"
@@ -59,6 +60,8 @@ export interface AppState {
   pendingFile: File | null;
   workbookSheetNames: string[] | null;
   rawFileData: RawFileData | null;
+  rawParsedRows: string[][] | null;
+  startingRowIndex: number;
   draftMapping: MappingEntry[];
   isLoading: boolean;
   error: string | null;

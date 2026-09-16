@@ -18,6 +18,8 @@ export const initialState: AppState = {
   pendingFile: null,
   workbookSheetNames: null,
   rawFileData: null,
+  rawParsedRows: null,
+  startingRowIndex: 0,
   draftMapping: [],
   isLoading: false,
   error: null,
@@ -37,7 +39,9 @@ export type Action =
   | { type: "SET_ERROR"; error: string | null }
   | { type: "FILE_SELECTED"; file: File }
   | { type: "SHEET_NAMES_READY"; sheetNames: string[] }
+  | { type: "RAW_PARSED_ROWS_READY"; rawParsedRows: string[][] }
   | { type: "RAW_DATA_READY"; rawFileData: RawFileData }
+  | { type: "SELECT_STARTING_ROW"; startingRowIndex: number; rawFileData: RawFileData }
   | { type: "CHOOSE_USE_SAVED_MAPPING" }
   | { type: "CHOOSE_CREATE_NEW_MAPPING" }
   | { type: "EDIT_MAPPING" }
@@ -66,6 +70,8 @@ export function appReducer(state: AppState, action: Action): AppState {
         pendingFile: null,
         workbookSheetNames: null,
         rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
         draftMapping: [],
         error: null,
       };
@@ -80,6 +86,8 @@ export function appReducer(state: AppState, action: Action): AppState {
         pendingFile: null,
         workbookSheetNames: null,
         rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
         draftMapping: [],
         error: null,
       };
@@ -101,6 +109,22 @@ export function appReducer(state: AppState, action: Action): AppState {
 
     case "SHEET_NAMES_READY":
       return { ...state, workbookSheetNames: action.sheetNames, step: "SHEET_PICKER" };
+
+    case "RAW_PARSED_ROWS_READY":
+      return {
+        ...state,
+        rawParsedRows: action.rawParsedRows,
+        startingRowIndex: 0,
+        step: "DATA_PREVIEW",
+      };
+
+    case "SELECT_STARTING_ROW":
+      return {
+        ...state,
+        startingRowIndex: action.startingRowIndex,
+        rawFileData: action.rawFileData,
+        step: state.savedMapping && state.savedMapping.mappings.length > 0 ? "MAPPING_CHOICE" : "MAPPING",
+      };
 
     case "RAW_DATA_READY":
       return {
@@ -144,6 +168,8 @@ export function appReducer(state: AppState, action: Action): AppState {
         pendingFile: null,
         workbookSheetNames: null,
         rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
         isLoading: false,
       };
 
@@ -154,6 +180,8 @@ export function appReducer(state: AppState, action: Action): AppState {
         pendingFile: null,
         workbookSheetNames: null,
         rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
         draftMapping: [],
       };
 
@@ -163,6 +191,8 @@ export function appReducer(state: AppState, action: Action): AppState {
         pendingFile: null,
         workbookSheetNames: null,
         rawFileData: null,
+        rawParsedRows: null,
+        startingRowIndex: 0,
         step: "AWAITING_UPLOAD",
       };
 

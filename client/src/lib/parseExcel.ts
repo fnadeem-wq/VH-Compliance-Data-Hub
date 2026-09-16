@@ -11,6 +11,57 @@ export async function readWorkbookSheetNames(file: File): Promise<{
   return { workbook, sheetNames: workbook.SheetNames };
 }
 
+export function parseWorkbookSheetRawRows(
+  workbook: XLSX.WorkBook,
+  sheetName: string
+): string[][] {
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) return [];
+
+  const rowsAsArrays = XLSX.utils.sheet_to_json<(string | number | Date | null)[]>(sheet, {
+    header: 1,
+    defval: null,
+    raw: true,
+  });
+
+  return rowsAsArrays.map((row) =>
+    row.map((cell) => {
+      if (cell instanceof Date) return cell.toISOString();
+      if (cell == null) return "";
+      return String(cell);
+    })
+  );
+}
+
+export function buildRawFileDataFromRows(
+  rawRows: string[][],
+  startingRowIndex: number
+): RawFileData {
+  if (startingRowIndex < 0 || startingRowIndex >= rawRows.length) {
+    return { headers: [], rows: [] };
+  }
+
+  const headerRow = rawRows[startingRowIndex];
+  if (!headerRow || headerRow.length === 0) {
+    return { headers: [], rows: [] };
+  }
+
+  const headers = dedupeHeaders(headerRow);
+  const dataRows = rawRows.slice(startingRowIndex + 1);
+
+  const rows = dataRows
+    .filter((row) => row.some((cell) => cell !== null && cell !== ""))
+    .map((row) => {
+      const record: Record<string, string | number | null> = {};
+      headers.forEach((header, index) => {
+        record[header] = row[index] ?? null;
+      });
+      return record;
+    });
+
+  return { headers, rows };
+}
+
 export function parseWorkbookSheet(workbook: XLSX.WorkBook, sheetName: string): RawFileData {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return { headers: [], rows: [] };
