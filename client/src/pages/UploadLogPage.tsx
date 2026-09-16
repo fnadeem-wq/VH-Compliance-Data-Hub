@@ -3,9 +3,10 @@ import { uploadLogApi, type UploadLogRow } from "../api/uploadLog";
 
 interface UploadLogPageProps {
   onSelectClient: (clientId: number) => void;
+  onEditMapping?: (clientId: number, sourceSystemId: number) => void;
 }
 
-export function UploadLogPage({ onSelectClient }: UploadLogPageProps) {
+export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPageProps) {
   const [rows, setRows] = useState<UploadLogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,6 +46,9 @@ export function UploadLogPage({ onSelectClient }: UploadLogPageProps) {
                     <th className="whitespace-nowrap px-6 py-3 text-center font-semibold text-primary">
                       Records
                     </th>
+                    <th className="whitespace-nowrap px-6 py-3 text-center font-semibold text-primary">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -68,11 +72,19 @@ export function UploadLogPage({ onSelectClient }: UploadLogPageProps) {
                           : "—"}
                       </td>
                       <td className="px-6 py-3 text-center text-charcoal">{row.recordCount.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-center">
+                        <button
+                          onClick={() => onEditMapping?.(row.clientId, row.sourceSystemId)}
+                          className="px-3 py-1 text-sm font-medium text-primary hover:text-white bg-primary/5 hover:bg-primary rounded transition-all border border-primary/20 hover:border-primary/40"
+                        >
+                          Edit Mapping
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {!isLoading && rows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-charcoal/60">
+                      <td colSpan={6} className="px-6 py-8 text-center text-charcoal/60">
                         No files uploaded yet.
                       </td>
                     </tr>

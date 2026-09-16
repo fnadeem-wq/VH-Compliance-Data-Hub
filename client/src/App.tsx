@@ -9,6 +9,7 @@ type View = "home" | "uploadLog" | "clientDetail";
 export function App() {
   const [view, setView] = useState<View>("home");
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [editSourceSystemId, setEditSourceSystemId] = useState<number | null>(null);
 
   function goHome() {
     setView("home");
@@ -20,6 +21,13 @@ export function App() {
 
   function goToClientDetail(clientId: number) {
     setSelectedClientId(clientId);
+    setEditSourceSystemId(null);
+    setView("clientDetail");
+  }
+
+  function goToEditMapping(clientId: number, sourceSystemId: number) {
+    setSelectedClientId(clientId);
+    setEditSourceSystemId(sourceSystemId);
     setView("clientDetail");
   }
 
@@ -48,9 +56,9 @@ export function App() {
 
       <main className="flex-1">
         {view === "home" && <HomePage onSelectClient={goToClientDetail} />}
-        {view === "uploadLog" && <UploadLogPage onSelectClient={goToClientDetail} />}
+        {view === "uploadLog" && <UploadLogPage onSelectClient={goToClientDetail} onEditMapping={goToEditMapping} />}
         {view === "clientDetail" && selectedClientId && (
-          <MainPage key={selectedClientId} clientId={selectedClientId} />
+          <MainPage key={selectedClientId} clientId={selectedClientId} editSourceSystemId={editSourceSystemId} />
         )}
       </main>
 

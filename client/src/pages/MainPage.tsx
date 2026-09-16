@@ -22,9 +22,10 @@ import type { MappingEntry, StoredRecord } from "../state/types";
 
 interface MainPageProps {
   clientId: number;
+  editSourceSystemId?: number | null;
 }
 
-export function MainPage({ clientId }: MainPageProps) {
+export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const workbookRef = useRef<XLSX.WorkBook | null>(null);
   const [clientWideRecords, setClientWideRecords] = useState<StoredRecord[] | null>(null);
@@ -56,8 +57,23 @@ export function MainPage({ clientId }: MainPageProps) {
       dispatch({ type: "SELECT_CLIENT", clientId });
       const sourceSystems = await sourceSystemsApi.list(clientId);
       dispatch({ type: "SET_SOURCE_SYSTEMS", sourceSystems });
+
+      // Auto-select and edit mapping if editSourceSystemId is provided
+      if (editSourceSystemId) {
+        const [savedMapping, recordsRes] = await Promise.all([
+          mappingApi.get(clientId, editSourceSystemId),
+          recordsApi.list(clientId, editSourceSystemId),
+        ]);
+        dispatch({
+          type: "SELECT_SOURCE_SYSTEM",
+          sourceSystemId: editSourceSystemId,
+          savedMapping,
+          history: recordsRes.records,
+        });
+        dispatch({ type: "EDIT_MAPPING" });
+      }
     })();
-  }, [clientId]);
+  }, [clientId, editSourceSystemId]);
 
   async function handleSelectSourceSystem(sourceSystemId: number | null) {
     if (sourceSystemId == null) {
