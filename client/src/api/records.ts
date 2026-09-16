@@ -16,4 +16,8 @@ export const recordsApi = {
       `/clients/${clientId}/source-systems/${sourceSystemId}/records`,
       { fileName, records }
     ),
+  delete: (clientId: number, sourceSystemId: number, batchId: number) =>
+    http.delete<{ success: boolean }>(
+      `/clients/${clientId}/source-systems/${sourceSystemId}/records/${batchId}`
+    ),
 };

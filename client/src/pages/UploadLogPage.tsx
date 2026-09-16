@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { uploadLogApi, type UploadLogRow } from "../api/uploadLog";
+import { recordsApi } from "../api/records";
 
 interface UploadLogPageProps {
   onSelectClient: (clientId: number) => void;
@@ -9,6 +10,7 @@ interface UploadLogPageProps {
 export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPageProps) {
   const [rows, setRows] = useState<UploadLogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingBatchId, setDeletingBatchId] = useState<number | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -17,6 +19,21 @@ export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPagePr
       .then((res) => setRows(res.rows))
       .finally(() => setIsLoading(false));
   }, []);
+
+  async function handleDeleteBatch(clientId: number, sourceSystemId: number, batchId: number) {
+    if (!window.confirm("Are you sure you want to delete this upload? This action cannot be undone.")) {
+      return;
+    }
+    setDeletingBatchId(batchId);
+    try {
+      await recordsApi.delete(clientId, sourceSystemId, batchId);
+      setRows((prev) => prev.filter((row) => row.batchId !== batchId));
+    } catch (err) {
+      alert("Failed to delete upload: " + (err instanceof Error ? err.message : "Unknown error"));
+    } finally {
+      setDeletingBatchId(null);
+    }
+  }
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
@@ -72,12 +89,19 @@ export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPagePr
                           : "—"}
                       </td>
                       <td className="px-6 py-3 text-center text-charcoal">{row.recordCount.toLocaleString()}</td>
-                      <td className="px-6 py-3 text-center">
+                      <td className="px-6 py-3 text-center space-x-2 flex justify-center">
                         <button
                           onClick={() => onEditMapping?.(row.clientId, row.sourceSystemId)}
                           className="px-3 py-1 text-sm font-medium text-primary hover:text-white bg-primary/5 hover:bg-primary rounded transition-all border border-primary/20 hover:border-primary/40"
                         >
                           Edit Mapping
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBatch(row.clientId, row.sourceSystemId, row.batchId)}
+                          disabled={deletingBatchId === row.batchId}
+                          className="px-3 py-1 text-sm font-medium text-error hover:text-white bg-error/5 hover:bg-error rounded transition-all border border-error/20 hover:border-error/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {deletingBatchId === row.batchId ? "Deleting..." : "Delete"}
                         </button>
                       </td>
                     </tr>

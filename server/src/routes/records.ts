@@ -97,3 +97,32 @@ recordsRouter.post("/", async (req: Request<RecordsParams>, res: Response, next)
     next(err);
   }
 });
+
+recordsRouter.delete("/:batchId", async (req: Request<RecordsParams & { batchId: string }>, res: Response, next) => {
+  try {
+    const sourceSystemId = Number(req.params.id);
+    const batchId = Number(req.params.batchId);
+
+    const batch = await prisma.uploadBatch.findUnique({
+      where: { id: batchId },
+    });
+
+    if (!batch) {
+      res.status(404).json({ error: "Upload batch not found" });
+      return;
+    }
+
+    if (batch.sourceSystemId !== sourceSystemId) {
+      res.status(403).json({ error: "Batch does not belong to this source system" });
+      return;
+    }
+
+    await prisma.uploadBatch.delete({
+      where: { id: batchId },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
