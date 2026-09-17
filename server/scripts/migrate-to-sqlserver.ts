@@ -19,15 +19,15 @@ async function migrateClients() {
   console.log(`  Found ${clients.length} clients in SQLite`);
 
   if (clients.length > 0) {
-    await sqlServerClient.$executeRawUnsafe(`SET IDENTITY_INSERT [Client] ON`);
-    await sqlServerClient.client.createMany({
-      data: clients.map((c) => ({
-        id: c.id,
-        name: c.name,
-        createdAt: c.createdAt,
-      })),
-    });
-    await sqlServerClient.$executeRawUnsafe(`SET IDENTITY_INSERT [Client] OFF`);
+    const insertStatements = clients
+      .map(
+        (client) =>
+          `INSERT INTO [Client] ([id], [name], [createdAt]) VALUES (${client.id}, '${client.name.replace(/'/g, "''")}', '${client.createdAt.toISOString()}')`
+      )
+      .join("; ");
+
+    const fullQuery = `SET IDENTITY_INSERT [Client] ON; ${insertStatements}; SET IDENTITY_INSERT [Client] OFF`;
+    await sqlServerClient.$executeRawUnsafe(fullQuery);
   }
 
   const sqlServerCount = await sqlServerClient.client.count();
@@ -49,20 +49,15 @@ async function migrateSourceSystems() {
   console.log(`  Found ${sourceSystems.length} source systems in SQLite`);
 
   if (sourceSystems.length > 0) {
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [SourceSystem] ON`
-    );
-    await sqlServerClient.sourceSystem.createMany({
-      data: sourceSystems.map((s) => ({
-        id: s.id,
-        clientId: s.clientId,
-        name: s.name,
-        createdAt: s.createdAt,
-      })),
-    });
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [SourceSystem] OFF`
-    );
+    const insertStatements = sourceSystems
+      .map(
+        (ss) =>
+          `INSERT INTO [SourceSystem] ([id], [clientId], [name], [createdAt]) VALUES (${ss.id}, ${ss.clientId}, '${ss.name.replace(/'/g, "''")}', '${ss.createdAt.toISOString()}')`
+      )
+      .join("; ");
+
+    const fullQuery = `SET IDENTITY_INSERT [SourceSystem] ON; ${insertStatements}; SET IDENTITY_INSERT [SourceSystem] OFF`;
+    await sqlServerClient.$executeRawUnsafe(fullQuery);
   }
 
   const sqlServerCount = await sqlServerClient.sourceSystem.count();
@@ -84,23 +79,17 @@ async function migrateColumnMappings() {
   console.log(`  Found ${mappings.length} column mappings in SQLite`);
 
   if (mappings.length > 0) {
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [ColumnMapping] ON`
-    );
-    await sqlServerClient.columnMapping.createMany({
-      data: mappings.map((m) => ({
-        id: m.id,
-        sourceSystemId: m.sourceSystemId,
-        standardizedField: m.standardizedField,
-        rawColumnName: m.rawColumnName,
-        constantValue: m.constantValue,
-        createdAt: m.createdAt,
-        updatedAt: m.updatedAt,
-      })),
-    });
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [ColumnMapping] OFF`
-    );
+    const insertStatements = mappings
+      .map((m) => {
+        const constantValueStr = m.constantValue
+          ? `'${m.constantValue.replace(/'/g, "''")}'`
+          : "NULL";
+        return `INSERT INTO [ColumnMapping] ([id], [sourceSystemId], [standardizedField], [rawColumnName], [constantValue], [createdAt], [updatedAt]) VALUES (${m.id}, ${m.sourceSystemId}, '${m.standardizedField.replace(/'/g, "''")}', '${m.rawColumnName.replace(/'/g, "''")}', ${constantValueStr}, '${m.createdAt.toISOString()}', '${m.updatedAt.toISOString()}')`;
+      })
+      .join("; ");
+
+    const fullQuery = `SET IDENTITY_INSERT [ColumnMapping] ON; ${insertStatements}; SET IDENTITY_INSERT [ColumnMapping] OFF`;
+    await sqlServerClient.$executeRawUnsafe(fullQuery);
   }
 
   const sqlServerCount = await sqlServerClient.columnMapping.count();
@@ -122,20 +111,17 @@ async function migrateUploadBatches() {
   console.log(`  Found ${batches.length} upload batches in SQLite`);
 
   if (batches.length > 0) {
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [UploadBatch] ON`
-    );
-    await sqlServerClient.uploadBatch.createMany({
-      data: batches.map((b) => ({
-        id: b.id,
-        sourceSystemId: b.sourceSystemId,
-        fileName: b.fileName,
-        uploadedAt: b.uploadedAt,
-      })),
-    });
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [UploadBatch] OFF`
-    );
+    const insertStatements = batches
+      .map((batch) => {
+        const fileNameStr = batch.fileName
+          ? `'${batch.fileName.replace(/'/g, "''")}'`
+          : "NULL";
+        return `INSERT INTO [UploadBatch] ([id], [sourceSystemId], [fileName], [uploadedAt]) VALUES (${batch.id}, ${batch.sourceSystemId}, ${fileNameStr}, '${batch.uploadedAt.toISOString()}')`;
+      })
+      .join("; ");
+
+    const fullQuery = `SET IDENTITY_INSERT [UploadBatch] ON; ${insertStatements}; SET IDENTITY_INSERT [UploadBatch] OFF`;
+    await sqlServerClient.$executeRawUnsafe(fullQuery);
   }
 
   const sqlServerCount = await sqlServerClient.uploadBatch.count();
@@ -157,33 +143,37 @@ async function migrateStandardizedRecords() {
   console.log(`  Found ${records.length} records in SQLite`);
 
   if (records.length > 0) {
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [StandardizedRecord] ON`
-    );
-
-    const batchSize = 250;
+    const batchSize = 500;
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize);
-      await sqlServerClient.standardizedRecord.createMany({
-        data: batch.map((r) => ({
-          id: r.id,
-          uploadBatchId: r.uploadBatchId,
-          physicianName: r.physicianName,
-          physicianNpi: r.physicianNpi,
-          physicianDesignation: r.physicianDesignation,
-          transferOfValue: r.transferOfValue,
-          amount: r.amount,
-          date: r.date,
-        })),
-      });
+      const insertStatements = batch
+        .map((r) => {
+          const physicianName = r.physicianName
+            ? `'${r.physicianName.replace(/'/g, "''")}'`
+            : "NULL";
+          const physicianNpi = r.physicianNpi
+            ? `'${r.physicianNpi.replace(/'/g, "''")}'`
+            : "NULL";
+          const physicianDesignation = r.physicianDesignation
+            ? `'${r.physicianDesignation.replace(/'/g, "''")}'`
+            : "NULL";
+          const transferOfValue = r.transferOfValue
+            ? `'${r.transferOfValue.replace(/'/g, "''")}'`
+            : "NULL";
+          const amount = r.amount !== null ? r.amount : "NULL";
+          const date = r.date
+            ? `'${r.date.replace(/'/g, "''")}'`
+            : "NULL";
+          return `INSERT INTO [StandardizedRecord] ([id], [uploadBatchId], [physicianName], [physicianNpi], [physicianDesignation], [transferOfValue], [amount], [date]) VALUES (${r.id}, ${r.uploadBatchId}, ${physicianName}, ${physicianNpi}, ${physicianDesignation}, ${transferOfValue}, ${amount}, ${date})`;
+        })
+        .join("; ");
+
+      const fullQuery = `SET IDENTITY_INSERT [StandardizedRecord] ON; ${insertStatements}; SET IDENTITY_INSERT [StandardizedRecord] OFF`;
+      await sqlServerClient.$executeRawUnsafe(fullQuery);
       console.log(
         `  Progress: ${Math.min(i + batchSize, records.length)}/${records.length}`
       );
     }
-
-    await sqlServerClient.$executeRawUnsafe(
-      `SET IDENTITY_INSERT [StandardizedRecord] OFF`
-    );
   }
 
   const sqlServerCount = await sqlServerClient.standardizedRecord.count();
