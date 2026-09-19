@@ -1,10 +1,12 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { clientsApi } from "../api/clients";
 import { sourceSystemsApi } from "../api/sourceSystems";
 import { mappingApi } from "../api/mapping";
 import { recordsApi } from "../api/records";
+import { uploadLogApi, type UploadLogRow } from "../api/uploadLog";
 import { Button } from "../components/ui/Button";
+import { AuditLogTable } from "../components/AuditLogTable";
 import { ColumnMappingTable } from "../components/ColumnMappingTable";
 import { EntityPicker } from "../components/EntityPicker";
 import { DataPreviewStep } from "../components/DataPreviewStep";
@@ -31,6 +33,9 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
   const [clientWideRecords, setClientWideRecords] = useState<StoredRecord[] | null>(null);
   const [isLoadingClientWide, setIsLoadingClientWide] = useState(false);
   const [isPickingSourceSystem, setIsPickingSourceSystem] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<UploadLogRow[]>([]);
+  const [isLoadingAuditLogs, setIsLoadingAuditLogs] = useState(false);
+  const [selectedBatchIds, setSelectedBatchIds] = useState<number[]>([]);
 
   const selectedClient = state.clients.find((c) => c.id === state.selectedClientId) ?? null;
   const selectedSourceSystem =
@@ -48,6 +53,36 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
       .then((res) => setClientWideRecords(res.records))
       .finally(() => setIsLoadingClientWide(false));
   }, [state.selectedClientId, state.selectedSourceSystemId]);
+
+  // Load audit logs for the client
+  useEffect(() => {
+    if (state.selectedClientId == null || state.selectedSourceSystemId != null) {
+      setAuditLogs([]);
+      setSelectedBatchIds([]);
+      return;
+    }
+    setIsLoadingAuditLogs(true);
+    uploadLogApi
+      .list()
+      .then((res) => {
+        const clientLogs = res.rows.filter((r) => r.clientId === state.selectedClientId);
+        setAuditLogs(clientLogs);
+        // Pre-select all batches by default
+        setSelectedBatchIds(clientLogs.map((r) => r.batchId));
+      })
+      .finally(() => setIsLoadingAuditLogs(false));
+  }, [state.selectedClientId, state.selectedSourceSystemId]);
+
+  // Filter records based on selected batches
+  const filteredRecords = useMemo(() => {
+    if (!clientWideRecords) return null;
+    if (selectedBatchIds.length === 0) return [];
+    return clientWideRecords.filter((r) =>
+      selectedBatchIds.includes(
+        auditLogs.find((a) => a.fileName === r.fileName)?.batchId ?? -1
+      )
+    );
+  }, [clientWideRecords, selectedBatchIds, auditLogs]);
 
   useEffect(() => {
     (async () => {
@@ -196,44 +231,61 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
 
         {/* Client-wide Records View */}
         {state.selectedSourceSystemId == null && (
-          <section className="rounded-lg bg-white p-6 shadow-card">
-            {isLoadingClientWide && (
-              <div className="flex items-center justify-center py-12">
-                <p className="text-charcoal/70">Loading all records for this client…</p>
-              </div>
-            )}
-            {!isLoadingClientWide && clientWideRecords && clientWideRecords.length === 0 && (
-              <div className="rounded-lg bg-bg-subtle p-8 text-center">
-                <p className="text-charcoal/70 mb-4">
-                  No records uploaded yet for this client, across any source system.
-                </p>
-                <Button
-                  variant="secondary"
-                  onClick={() => setIsPickingSourceSystem(true)}
-                >
-                  Upload a new file +
-                </Button>
-              </div>
-            )}
-            {!isLoadingClientWide && clientWideRecords && clientWideRecords.length > 0 && (
-              <div className="space-y-4">
-                <StandardizedResultsTable
-                  records={clientWideRecords}
-                  onDownloadCsv={(rows) =>
-                    exportCsv(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
-                  }
-                  onDownloadExcel={(rows) =>
-                    exportExcel(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
-                  }
-                />
-                <Button
-                  variant="secondary"
-                  onClick={() => setIsPickingSourceSystem(true)}
-                >
-                  Upload a new file +
-                </Button>
-              </div>
-            )}
+          <section className="space-y-8">
+            {/* Audit Log Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-primary mb-4">Complete Audit Log</h3>
+              <AuditLogTable
+                clientId={clientId}
+                rows={auditLogs}
+                isLoading={isLoadingAuditLogs}
+                onSelectedBatchesChange={setSelectedBatchIds}
+                onEditMapping={(clientId, sourceSystemId) => {
+                  // Navigate to edit mapping for source system
+                }}
+              />
+            </div>
+
+            {/* Analytics Section */}
+            <div className="rounded-lg bg-white p-6 shadow-card">
+              {isLoadingClientWide && (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-charcoal/70">Loading all records for this client…</p>
+                </div>
+              )}
+              {!isLoadingClientWide && filteredRecords && filteredRecords.length === 0 && (
+                <div className="rounded-lg bg-bg-subtle p-8 text-center">
+                  <p className="text-charcoal/70 mb-4">
+                    No records uploaded yet for this client, across any source system.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsPickingSourceSystem(true)}
+                  >
+                    Upload a new file +
+                  </Button>
+                </div>
+              )}
+              {!isLoadingClientWide && filteredRecords && filteredRecords.length > 0 && (
+                <div className="space-y-4">
+                  <StandardizedResultsTable
+                    records={filteredRecords}
+                    onDownloadCsv={(rows) =>
+                      exportCsv(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
+                    }
+                    onDownloadExcel={(rows) =>
+                      exportExcel(rows, `${selectedClient?.name ?? "client"}_all_sources_standardized`)
+                    }
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsPickingSourceSystem(true)}
+                  >
+                    Upload a new file +
+                  </Button>
+                </div>
+              )}
+            </div>
 
             {/* Inline Source System Picker */}
             {isPickingSourceSystem && (

@@ -41,7 +41,7 @@ export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPagePr
       <section className="px-6 py-16 bg-bg-subtle">
         <div className="mx-auto max-w-[1400px]">
           <h2 className="mb-8 text-2xl font-bold text-primary">
-            Upload Log ({rows.length} file{rows.length === 1 ? "" : "s"})
+            Complete Audit Log ({rows.length} file{rows.length === 1 ? "" : "s"})
           </h2>
 
           <div className="rounded-lg bg-white shadow-card overflow-hidden">
