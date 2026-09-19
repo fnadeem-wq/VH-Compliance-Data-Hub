@@ -48,7 +48,7 @@ export function App() {
                 onClick={goToUploadLog}
                 className="px-4 py-1.5 text-sm font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-all border border-primary/20 hover:border-primary/40"
               >
-                Upload Log
+                Complete Audit Log
               </button>
             )}
           </div>

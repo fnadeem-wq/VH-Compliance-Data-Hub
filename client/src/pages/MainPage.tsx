@@ -234,7 +234,7 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
           <section className="space-y-8">
             {/* Audit Log Section */}
             <div>
-              <h3 className="text-lg font-semibold text-primary mb-4">Complete Audit Log</h3>
+              <h3 className="text-lg font-semibold text-primary mb-4">Audit Log</h3>
               <AuditLogTable
                 clientId={clientId}
                 rows={auditLogs}
