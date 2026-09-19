@@ -97,6 +97,7 @@ clientsRouter.get(
         id: record.id,
         uploadedAt: batch.uploadedAt,
         fileName: batch.fileName,
+        batchId: batch.id,
         sourceSystemName: batch.sourceSystem.name,
         physicianName: record.physicianName,
         physicianNpi: record.physicianNpi,
