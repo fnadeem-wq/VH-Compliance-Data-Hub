@@ -60,14 +60,14 @@ export function ClientCarousel({
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-primary/10">
+      <div className="flex items-center justify-between pt-6">
         <button
           onClick={handlePrev}
           disabled={page === 0}
-          className="group p-2 rounded-lg text-primary hover:text-white hover:bg-primary disabled:text-charcoal/30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
+          className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
           aria-label="Previous page"
         >
-          <span className="text-2xl font-light">‹</span>
+          <span className="text-xl font-light">‹</span>
         </button>
 
         <p className="text-sm font-medium text-charcoal/70">
@@ -77,10 +77,10 @@ export function ClientCarousel({
         <button
           onClick={handleNext}
           disabled={page >= totalPages - 1}
-          className="group p-2 rounded-lg text-primary hover:text-white hover:bg-primary disabled:text-charcoal/30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
+          className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
           aria-label="Next page"
         >
-          <span className="text-2xl font-light">›</span>
+          <span className="text-xl font-light">›</span>
         </button>
       </div>
     </div>
