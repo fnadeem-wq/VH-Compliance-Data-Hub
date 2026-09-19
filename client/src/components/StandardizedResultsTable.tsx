@@ -168,12 +168,12 @@ export function StandardizedResultsTable({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TransactionCategoryChart
-          records={records}
+          records={filteredRecords}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
         />
         <TransactionSourceSystemChart
-          records={records}
+          records={filteredRecords}
           selectedSourceSystem={selectedSourceSystem}
           onSelectSourceSystem={setSelectedSourceSystem}
         />
