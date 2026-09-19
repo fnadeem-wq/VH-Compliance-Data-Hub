@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { uploadLogApi, type UploadLogRow } from "../api/uploadLog";
 import { recordsApi } from "../api/records";
+import { SkeletonTableRow } from "../components/SkeletonLoader";
 
 interface UploadLogPageProps {
   onSelectClient: (clientId: number) => void;
@@ -69,49 +70,64 @@ export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPagePr
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {rows.map((row) => (
-                    <tr key={row.batchId} className="hover:bg-bg-subtle transition-colors">
-                      <td className="px-6 py-3">
-                        <button
-                          onClick={() => onSelectClient(row.clientId)}
-                          className="font-medium text-primary hover:text-primary-dark hover:underline"
-                        >
-                          {row.clientName}
-                        </button>
-                      </td>
-                      <td className="px-6 py-3 text-charcoal">{row.sourceSystemName}</td>
-                      <td className="px-6 py-3 text-charcoal">{row.fileName ?? "—"}</td>
-                      <td className="whitespace-nowrap px-6 py-3 text-charcoal">
-                        {row.dateRangeMin && row.dateRangeMax
-                          ? row.dateRangeMin === row.dateRangeMax
-                            ? row.dateRangeMin
-                            : `${row.dateRangeMin} – ${row.dateRangeMax}`
-                          : "—"}
-                      </td>
-                      <td className="px-6 py-3 text-center text-charcoal">{row.recordCount.toLocaleString()}</td>
-                      <td className="px-6 py-3 text-center space-x-2 flex justify-center">
-                        <button
-                          onClick={() => onEditMapping?.(row.clientId, row.sourceSystemId)}
-                          className="px-3 py-1 text-sm font-medium text-primary hover:text-white bg-primary/5 hover:bg-primary rounded transition-all border border-primary/20 hover:border-primary/40"
-                        >
-                          Edit Mapping
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBatch(row.clientId, row.sourceSystemId, row.batchId)}
-                          disabled={deletingBatchId === row.batchId}
-                          className="px-3 py-1 text-sm font-medium text-error hover:text-white bg-error/5 hover:bg-error rounded transition-all border border-error/20 hover:border-error/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {deletingBatchId === row.batchId ? "Deleting..." : "Delete"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {!isLoading && rows.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-charcoal/60">
-                        No files uploaded yet.
-                      </td>
-                    </tr>
+                  {/* Skeleton Loading Base - Always visible when loading */}
+                  {isLoading && (
+                    <>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <SkeletonTableRow key={`skeleton-${i}`} />
+                      ))}
+                    </>
+                  )}
+
+                  {/* Actual Content - Fades in over skeleton when ready */}
+                  {!isLoading && (
+                    <>
+                      {rows.length > 0 ? (
+                        rows.map((row) => (
+                          <tr key={row.batchId} className="hover:bg-bg-subtle transition-colors">
+                            <td className="px-6 py-3">
+                              <button
+                                onClick={() => onSelectClient(row.clientId)}
+                                className="font-medium text-primary hover:text-primary-dark hover:underline"
+                              >
+                                {row.clientName}
+                              </button>
+                            </td>
+                            <td className="px-6 py-3 text-charcoal">{row.sourceSystemName}</td>
+                            <td className="px-6 py-3 text-charcoal">{row.fileName ?? "—"}</td>
+                            <td className="whitespace-nowrap px-6 py-3 text-charcoal">
+                              {row.dateRangeMin && row.dateRangeMax
+                                ? row.dateRangeMin === row.dateRangeMax
+                                  ? row.dateRangeMin
+                                  : `${row.dateRangeMin} – ${row.dateRangeMax}`
+                                : "—"}
+                            </td>
+                            <td className="px-6 py-3 text-center text-charcoal">{row.recordCount.toLocaleString()}</td>
+                            <td className="px-6 py-3 text-center space-x-2 flex justify-center">
+                              <button
+                                onClick={() => onEditMapping?.(row.clientId, row.sourceSystemId)}
+                                className="px-3 py-1 text-sm font-medium text-primary hover:text-white bg-primary/5 hover:bg-primary rounded transition-all border border-primary/20 hover:border-primary/40"
+                              >
+                                Edit Mapping
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBatch(row.clientId, row.sourceSystemId, row.batchId)}
+                                disabled={deletingBatchId === row.batchId}
+                                className="px-3 py-1 text-sm font-medium text-error hover:text-white bg-error/5 hover:bg-error rounded transition-all border border-error/20 hover:border-error/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {deletingBatchId === row.batchId ? "Deleting..." : "Delete"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-8 text-center text-charcoal/60">
+                            No files uploaded yet.
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   )}
                 </tbody>
               </table>

@@ -4,6 +4,7 @@ import { UploadLogPage } from "./pages/UploadLogPage";
 import { MainPage } from "./pages/MainPage";
 import vhLogo from "./assets/vh-logo.png";
 
+// Test hook trigger for automated E2E tests
 type View = "home" | "uploadLog" | "clientDetail";
 
 export function App() {
