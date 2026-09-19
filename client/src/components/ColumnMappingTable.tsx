@@ -78,7 +78,7 @@ export function ColumnMappingTable({
   }
 
   function handleConfirm() {
-    const mapping: MappingEntry[] = STANDARDIZED_FIELDS.flatMap(({ field }) => {
+    const mapping: MappingEntry[] = STANDARDIZED_FIELDS.flatMap(({ field }): MappingEntry[] => {
       const fieldState = selections[field];
       const hasConstantValue = CONSTANT_VALUE_FIELDS.includes(field) && fieldState.constantValue;
 
