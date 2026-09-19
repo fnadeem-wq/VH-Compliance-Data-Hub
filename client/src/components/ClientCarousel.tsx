@@ -49,39 +49,41 @@ export function ClientCarousel({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {visibleSlice.map((client) => (
-          <ClientCard
-            key={client.id}
-            client={client}
-            onClick={() => onSelectClient(client.id)}
-            onClientsChanged={onClientsChanged}
-          />
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between pt-6">
+      <div className="flex items-center justify-center gap-8">
         <button
           onClick={handlePrev}
           disabled={page === 0}
-          className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+          className="w-16 h-16 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center flex-shrink-0"
           aria-label="Previous page"
         >
-          <span className="text-xl font-light">‹</span>
+          <span className="text-4xl font-light">‹</span>
         </button>
 
-        <p className="text-sm font-medium text-charcoal/70">
-          Showing <span className="text-primary font-bold">{visibleSlice.length}</span> of <span className="text-primary font-bold">{clients.length}</span>
-        </p>
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {visibleSlice.map((client) => (
+            <ClientCard
+              key={client.id}
+              client={client}
+              onClick={() => onSelectClient(client.id)}
+              onClientsChanged={onClientsChanged}
+            />
+          ))}
+        </div>
 
         <button
           onClick={handleNext}
           disabled={page >= totalPages - 1}
-          className="w-10 h-10 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+          className="w-16 h-16 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:border-charcoal/30 disabled:text-charcoal/30 disabled:cursor-not-allowed transition-all flex items-center justify-center flex-shrink-0"
           aria-label="Next page"
         >
-          <span className="text-xl font-light">›</span>
+          <span className="text-4xl font-light">›</span>
         </button>
+      </div>
+
+      <div className="flex justify-center pt-4">
+        <p className="text-sm font-medium text-charcoal/70">
+          Showing <span className="text-primary font-bold">{visibleSlice.length}</span> of <span className="text-primary font-bold">{clients.length}</span>
+        </p>
       </div>
     </div>
   );
