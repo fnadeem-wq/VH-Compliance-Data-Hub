@@ -103,13 +103,7 @@ export function UploadLogPage({ onSelectClient, onEditMapping }: UploadLogPagePr
                                 : "—"}
                             </td>
                             <td className="px-6 py-3 text-center text-charcoal">{row.recordCount.toLocaleString()}</td>
-                            <td className="px-6 py-3 text-center space-x-2 flex justify-center">
-                              <button
-                                onClick={() => onEditMapping?.(row.clientId, row.sourceSystemId)}
-                                className="px-3 py-1 text-sm font-medium text-primary hover:text-white bg-primary/5 hover:bg-primary rounded transition-all border border-primary/20 hover:border-primary/40"
-                              >
-                                Edit Mapping
-                              </button>
+                            <td className="px-6 py-3 text-center">
                               <button
                                 onClick={() => handleDeleteBatch(row.clientId, row.sourceSystemId, row.batchId)}
                                 disabled={deletingBatchId === row.batchId}

@@ -240,9 +240,6 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
                 rows={auditLogs}
                 isLoading={isLoadingAuditLogs}
                 onSelectedBatchesChange={setSelectedBatchIds}
-                onEditMapping={(clientId, sourceSystemId) => {
-                  // Navigate to edit mapping for source system
-                }}
               />
             </div>
 
