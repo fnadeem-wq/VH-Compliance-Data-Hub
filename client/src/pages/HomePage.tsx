@@ -77,9 +77,11 @@ export function HomePage({ onSelectClient }: HomePageProps) {
               <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-xl"></div>
 
               {/* Skeleton Loading Base */}
-              <div className="absolute inset-8 pointer-events-none">
-                <SkeletonCarousel />
-              </div>
+              {isLoading && (
+                <div className="pointer-events-none">
+                  <SkeletonCarousel itemCount={clients.length} />
+                </div>
+              )}
 
               {/* Carousel Content - Fades in over skeleton */}
               <div className={`relative transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>

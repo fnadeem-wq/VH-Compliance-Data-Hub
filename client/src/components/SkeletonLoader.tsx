@@ -38,19 +38,29 @@ export function SkeletonTableRow() {
   );
 }
 
-export function SkeletonCarousel() {
+export function SkeletonCarousel({ itemCount = 3 }: { itemCount?: number } = {}) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-center gap-8">
-        <div className="w-16 h-16 rounded-full border-2 border-primary/10 bg-primary/5 animate-pulse flex-shrink-0"></div>
+        <button
+          disabled
+          className="w-16 h-16 rounded-full border-2 border-primary/10 bg-primary/5 animate-pulse flex-shrink-0 flex items-center justify-center"
+        >
+          <span className="text-5xl font-light leading-none text-primary/20">‹</span>
+        </button>
 
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+          {Array.from({ length: Math.min(itemCount, 3) }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
 
-        <div className="w-16 h-16 rounded-full border-2 border-primary/10 bg-primary/5 animate-pulse flex-shrink-0"></div>
+        <button
+          disabled
+          className="w-16 h-16 rounded-full border-2 border-primary/10 bg-primary/5 animate-pulse flex-shrink-0 flex items-center justify-center"
+        >
+          <span className="text-5xl font-light leading-none text-primary/20">›</span>
+        </button>
       </div>
 
       <div className="flex justify-center pt-4">
