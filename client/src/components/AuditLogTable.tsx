@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { UploadLogRow } from "../api/uploadLog";
 import { recordsApi } from "../api/records";
 
@@ -15,10 +15,15 @@ export function AuditLogTable({
   isLoading,
   onSelectedBatchesChange,
 }: AuditLogTableProps) {
-  const [selectedBatches, setSelectedBatches] = useState<Set<number>>(
-    () => new Set(rows.map((r) => r.batchId))
-  );
+  const [selectedBatches, setSelectedBatches] = useState<Set<number>>(new Set());
   const [deletingBatchId, setDeletingBatchId] = useState<number | null>(null);
+
+  // Sync selectedBatches when rows change
+  useEffect(() => {
+    const allBatchIds = new Set(rows.map((r) => r.batchId));
+    setSelectedBatches(allBatchIds);
+    onSelectedBatchesChange?.(Array.from(allBatchIds));
+  }, [rows, onSelectedBatchesChange]);
 
   const handleToggleBatch = (batchId: number) => {
     const newSelected = new Set(selectedBatches);

@@ -77,11 +77,17 @@ export function MainPage({ clientId, editSourceSystemId }: MainPageProps) {
   const filteredRecords = useMemo(() => {
     if (!clientWideRecords) return null;
     if (selectedBatchIds.length === 0) return [];
-    return clientWideRecords.filter((r) =>
-      selectedBatchIds.includes(
-        auditLogs.find((a) => a.fileName === r.fileName)?.batchId ?? -1
-      )
-    );
+
+    // Create a map of fileName to batchId for faster lookup
+    const fileNameToBatchId = new Map<string | null, number>();
+    auditLogs.forEach((log) => {
+      fileNameToBatchId.set(log.fileName, log.batchId);
+    });
+
+    return clientWideRecords.filter((r) => {
+      const batchId = fileNameToBatchId.get(r.fileName);
+      return batchId !== undefined && selectedBatchIds.includes(batchId);
+    });
   }, [clientWideRecords, selectedBatchIds, auditLogs]);
 
   useEffect(() => {
