@@ -117,6 +117,9 @@ clientsRouter.get(
         transferOfValue: record.transferOfValue,
         amount: record.amount,
         date: record.date,
+        companyName: record.companyName,
+        applicableManufacturerOrGpoMakingPaymentId: record.applicableManufacturerOrGpoMakingPaymentId,
+        submittingApplicableManufacturerOrGpoName: record.submittingApplicableManufacturerOrGpoName,
       }))
     );
 

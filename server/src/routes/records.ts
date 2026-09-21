@@ -44,6 +44,9 @@ recordsRouter.get("/", async (req: Request<RecordsParams>, res: Response) => {
       transferOfValue: record.transferOfValue,
       amount: record.amount,
       date: record.date,
+      companyName: record.companyName,
+      applicableManufacturerOrGpoMakingPaymentId: record.applicableManufacturerOrGpoMakingPaymentId,
+      submittingApplicableManufacturerOrGpoName: record.submittingApplicableManufacturerOrGpoName,
     }))
   );
 
@@ -55,7 +58,10 @@ recordsRouter.post("/", async (req: Request<RecordsParams>, res: Response, next)
     const sourceSystemId = Number(req.params.id);
     const { fileName, records } = recordsBodySchema.parse(req.body);
 
-    const sourceSystem = await prisma.sourceSystem.findUnique({ where: { id: sourceSystemId } });
+    const sourceSystem = await prisma.sourceSystem.findUnique({
+      where: { id: sourceSystemId },
+      include: { client: true },
+    });
     if (!sourceSystem) {
       res.status(404).json({ error: "Source system not found" });
       return;
@@ -73,6 +79,9 @@ recordsRouter.post("/", async (req: Request<RecordsParams>, res: Response, next)
             transferOfValue: r.transferOfValue ?? null,
             amount: r.amount ?? null,
             date: r.date ?? null,
+            companyName: sourceSystem.client.companyName,
+            applicableManufacturerOrGpoMakingPaymentId: sourceSystem.client.applicableManufacturerOrGpoMakingPaymentId,
+            submittingApplicableManufacturerOrGpoName: sourceSystem.client.submittingApplicableManufacturerOrGpoName,
           })),
         },
       },
@@ -93,6 +102,9 @@ recordsRouter.post("/", async (req: Request<RecordsParams>, res: Response, next)
         transferOfValue: record.transferOfValue,
         amount: record.amount,
         date: record.date,
+        companyName: record.companyName,
+        applicableManufacturerOrGpoMakingPaymentId: record.applicableManufacturerOrGpoMakingPaymentId,
+        submittingApplicableManufacturerOrGpoName: record.submittingApplicableManufacturerOrGpoName,
       })),
     });
   } catch (err) {
