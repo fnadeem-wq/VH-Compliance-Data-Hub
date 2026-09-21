@@ -5,6 +5,7 @@ import { sourceSystemsRouter } from "./routes/sourceSystems";
 import { mappingRouter } from "./routes/mapping";
 import { recordsRouter } from "./routes/records";
 import { uploadLogRouter } from "./routes/uploadLog";
+import { organizationDirectoryRouter } from "./routes/organizationDirectory";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/clients/:clientId/source-systems", sourceSystemsRouter);
 app.use("/api/clients/:clientId/source-systems/:id/mapping", mappingRouter);
 app.use("/api/clients/:clientId/source-systems/:id/records", recordsRouter);
 app.use("/api/upload-log", uploadLogRouter);
+app.use("/api/organization-directory", organizationDirectoryRouter);
 
 app.use(errorHandler);
 
