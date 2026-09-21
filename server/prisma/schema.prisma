@@ -8,20 +8,23 @@ datasource db {
 }
 
 model Client {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
-  createdAt     DateTime       @default(now())
-  sourceSystems SourceSystem[]
+  id                                                      Int            @id @default(autoincrement())
+  name                                                    String         @unique
+  createdAt                                               DateTime       @default(now())
+  companyName                                             String?
+  applicableManufacturerOrGpoMakingPaymentId              String?
+  submittingApplicableManufacturerOrGpoName               String?
+  sourceSystems                                           SourceSystem[]
 }
 
 model SourceSystem {
   id             Int             @id @default(autoincrement())
   clientId       Int
   name           String
-  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  columnMappings ColumnMapping[]
-  uploadBatches  UploadBatch[]
   createdAt      DateTime        @default(now())
+  columnMappings ColumnMapping[]
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  uploadBatches  UploadBatch[]
 
   @@unique([clientId, name])
 }
@@ -29,12 +32,12 @@ model SourceSystem {
 model ColumnMapping {
   id                Int          @id @default(autoincrement())
   sourceSystemId    Int
-  sourceSystem      SourceSystem @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
   standardizedField String
   rawColumnName     String
   constantValue     String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+  sourceSystem      SourceSystem @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
 
   @@unique([sourceSystemId, standardizedField, rawColumnName])
 }
@@ -42,20 +45,32 @@ model ColumnMapping {
 model UploadBatch {
   id             Int                  @id @default(autoincrement())
   sourceSystemId Int
-  sourceSystem   SourceSystem         @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
   fileName       String?
   uploadedAt     DateTime             @default(now())
   records        StandardizedRecord[]
+  sourceSystem   SourceSystem         @relation(fields: [sourceSystemId], references: [id], onDelete: Cascade)
 }
 
 model StandardizedRecord {
-  id                   Int         @id @default(autoincrement())
-  uploadBatchId        Int
-  uploadBatch          UploadBatch @relation(fields: [uploadBatchId], references: [id], onDelete: Cascade)
-  physicianName        String?
-  physicianNpi         String?
-  physicianDesignation String?
-  transferOfValue      String?
-  amount               Float?
-  date                 String?
+  id                                                      Int         @id @default(autoincrement())
+  uploadBatchId                                           Int
+  physicianName                                           String?
+  physicianNpi                                            String?
+  physicianDesignation                                    String?
+  transferOfValue                                         String?
+  amount                                                  Float?
+  date                                                    String?
+  companyName                                             String?
+  applicableManufacturerOrGpoMakingPaymentId              String?
+  submittingApplicableManufacturerOrGpoName               String?
+  uploadBatch                                             UploadBatch @relation(fields: [uploadBatchId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationDirectory {
+  id                                          Int     @id @default(autoincrement())
+  companyName                                 String  @unique @map("Company_Name") @db.VarChar(100)
+  applicableManufacturerOrGpoMakingPaymentId  String? @map("Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID") @db.VarChar(100)
+  submittingApplicableManufacturerOrGpoName   String? @map("Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name") @db.VarChar(100)
+
+  @@map("Organization_Directory")
 }

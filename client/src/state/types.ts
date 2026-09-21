@@ -37,6 +37,9 @@ export interface StoredRecord extends StandardizedRow {
   uploadedAt: string;
   fileName: string | null;
   batchId: number;
+  companyName?: string | null;
+  applicableManufacturerOrGpoMakingPaymentId?: string | null;
+  submittingApplicableManufacturerOrGpoName?: string | null;
   /** Only populated in the client-wide combined view (all source systems appended together). */
   sourceSystemName?: string;
 }
