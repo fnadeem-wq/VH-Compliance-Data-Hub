@@ -5,7 +5,12 @@ import { asyncHandler, HttpError } from "../middleware/errorHandler";
 
 export const clientsRouter = Router();
 
-const nameSchema = z.object({ name: z.string().trim().min(1, "Name is required") });
+const nameSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  companyName: z.string().optional(),
+  applicableManufacturerOrGpoMakingPaymentId: z.string().optional(),
+  submittingApplicableManufacturerOrGpoName: z.string().optional(),
+});
 
 clientsRouter.get(
   "/",
@@ -40,14 +45,21 @@ clientsRouter.get(
 clientsRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    const { name } = nameSchema.parse(req.body);
+    const { name, companyName, applicableManufacturerOrGpoMakingPaymentId, submittingApplicableManufacturerOrGpoName } = nameSchema.parse(req.body);
 
     const existing = await prisma.client.findUnique({ where: { name } });
     if (existing) {
       throw new HttpError(409, `A client named "${name}" already exists`);
     }
 
-    const client = await prisma.client.create({ data: { name } });
+    const client = await prisma.client.create({
+      data: {
+        name,
+        companyName: companyName || null,
+        applicableManufacturerOrGpoMakingPaymentId: applicableManufacturerOrGpoMakingPaymentId || null,
+        submittingApplicableManufacturerOrGpoName: submittingApplicableManufacturerOrGpoName || null,
+      },
+    });
     res.status(201).json({ id: client.id, name: client.name });
   })
 );

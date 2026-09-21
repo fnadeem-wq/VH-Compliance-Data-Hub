@@ -11,7 +11,8 @@ export interface ClientSummary {
 export const clientsApi = {
   list: () => http.get<Entity[]>("/clients"),
   summary: () => http.get<ClientSummary[]>("/clients/summary"),
-  create: (name: string) => http.post<Entity>("/clients", { name }),
+  create: (name: string, company?: { companyName: string; applicableManufacturerOrGpoMakingPaymentId?: string; submittingApplicableManufacturerOrGpoName?: string }) =>
+    http.post<Entity>("/clients", { name, ...company }),
   rename: (id: number, name: string) => http.patch<Entity>(`/clients/${id}`, { name }),
   remove: (id: number) => http.delete<void>(`/clients/${id}`),
   recordCount: (id: number) => http.get<{ count: number }>(`/clients/${id}/record-count`),

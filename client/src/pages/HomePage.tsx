@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { clientsApi, type ClientSummary } from "../api/clients";
 import { ClientCarousel } from "../components/ClientCarousel";
-import { EntityModal } from "../components/EntityModal";
+import { AddOrganizationModal } from "../components/AddOrganizationModal";
 import { SkeletonCarousel } from "../components/SkeletonLoader";
 
 interface HomePageProps {
@@ -27,8 +27,8 @@ export function HomePage({ onSelectClient }: HomePageProps) {
     loadClients();
   }, []);
 
-  const handleCreateClient = async (name: string) => {
-    await clientsApi.create(name);
+  const handleCreateClient = async (name: string, company?: { companyName: string; applicableManufacturerOrGpoMakingPaymentId?: string; submittingApplicableManufacturerOrGpoName?: string }) => {
+    await clientsApi.create(name, company);
     setIsCreateModalOpen(false);
     await loadClients();
   };
@@ -100,17 +100,14 @@ export function HomePage({ onSelectClient }: HomePageProps) {
               onClick={() => setIsCreateModalOpen(true)}
               className="group relative px-8 py-3 rounded-lg font-semibold text-primary hover:text-white bg-transparent border-2 border-primary hover:bg-primary transition-all duration-300 shadow-sm hover:shadow-md"
             >
-              <span className="relative z-10">+ Create New Organization</span>
+              <span className="relative z-10">+ Add an Organisation</span>
             </button>
           </div>
         </div>
       </section>
 
       {isCreateModalOpen && (
-        <EntityModal
-          title="Create Organization"
-          label="Organization name"
-          confirmLabel="Create"
+        <AddOrganizationModal
           onConfirm={handleCreateClient}
           onClose={() => setIsCreateModalOpen(false)}
         />
