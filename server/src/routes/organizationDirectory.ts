@@ -17,34 +17,35 @@ organizationDirectoryRouter.get(
 
     const searchTerm = q.trim();
 
-    // Search using Prisma with case-insensitive matching
-    // SQL Server's default collation is case-insensitive for LIKE operator
-    const results = await prisma.organizationDirectory.findMany({
-      where: {
-        companyName: {
-          startsWith: searchTerm,
-        },
-      },
-      select: {
-        id: true,
-        companyName: true,
-        applicableManufacturerOrGpoMakingPaymentId: true,
-        submittingApplicableManufacturerOrGpoName: true,
-      },
-      take: 50,
-      orderBy: {
-        companyName: "asc",
-      },
-    });
+    try {
+      // Use raw SQL with template literals for proper Prisma parameterization
+      const searchPattern = searchTerm + '%';
+      const results = await prisma.$queryRaw<Array<{
+        Company_Name: string;
+        Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID: string | null;
+        Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name: string | null;
+      }>>`
+        SELECT TOP 50
+          Company_Name,
+          Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID,
+          Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name
+        FROM [GPT].[dbo].[Organization_Directory]
+        WHERE Company_Name LIKE ${searchPattern}
+        ORDER BY Company_Name ASC
+      `;
 
-    // Map results to expected format with index-based id fallback
-    const resultsWithId = results.map((item, index) => ({
-      id: (item as any).id || index + 1,
-      companyName: item.companyName,
-      applicableManufacturerOrGpoMakingPaymentId: item.applicableManufacturerOrGpoMakingPaymentId,
-      submittingApplicableManufacturerOrGpoName: item.submittingApplicableManufacturerOrGpoName,
-    }));
+      // Map to expected format
+      const resultsWithId = results.map((item, index) => ({
+        id: index + 1,
+        companyName: item.Company_Name,
+        applicableManufacturerOrGpoMakingPaymentId: item.Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID,
+        submittingApplicableManufacturerOrGpoName: item.Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
+      }));
 
-    res.json(resultsWithId);
+      res.json(resultsWithId);
+    } catch (error) {
+      console.error("Search error:", error);
+      throw error;
+    }
   })
 );

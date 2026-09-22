@@ -67,8 +67,7 @@ model StandardizedRecord {
 }
 
 model OrganizationDirectory {
-  id                                          Int     @id @default(autoincrement())
-  companyName                                 String  @unique @map("Company_Name") @db.VarChar(100)
+  companyName                                 String  @id @map("Company_Name") @db.VarChar(100)
   applicableManufacturerOrGpoMakingPaymentId  String? @map("Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID") @db.VarChar(100)
   submittingApplicableManufacturerOrGpoName   String? @map("Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name") @db.VarChar(100)
 
