@@ -23,12 +23,10 @@ organizationDirectoryRouter.get(
       const results = await prisma.$queryRaw<Array<{
         Company_Name: string;
         Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID: string | null;
-        Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name: string | null;
       }>>`
         SELECT TOP 50
           Company_Name,
-          Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID,
-          Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name
+          Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID
         FROM [GPT].[dbo].[Organization_Directory]
         WHERE Company_Name LIKE ${searchPattern}
         ORDER BY Company_Name ASC
@@ -39,7 +37,7 @@ organizationDirectoryRouter.get(
         id: index + 1,
         companyName: item.Company_Name,
         applicableManufacturerOrGpoMakingPaymentId: item.Applicable_Manufacturer_or_Applicable_GPO_Making_Payment_ID,
-        submittingApplicableManufacturerOrGpoName: item.Submitting_Applicable_Manufacturer_or_Applicable_GPO_Name,
+        submittingApplicableManufacturerOrGpoName: null,
       }));
 
       res.json(resultsWithId);
