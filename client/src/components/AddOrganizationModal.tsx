@@ -25,11 +25,16 @@ export function AddOrganizationModal({ onConfirm, onClose }: AddOrganizationModa
       return;
     }
     setIsSearching(true);
+    setError(null);
     try {
       const results = await organizationDirectoryApi.search(searchQuery.trim());
+      console.log("Search results:", results);
       setSearchResults(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed");
+      const errorMessage = err instanceof Error ? err.message : "Search failed";
+      console.error("Search error:", err);
+      setError(errorMessage);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
