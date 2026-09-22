@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { clientsApi, type ClientSummary } from "../api/clients";
+import { clientsApi, type ClientSummary, type CreateClientPayload } from "../api/clients";
 import { ClientCarousel } from "../components/ClientCarousel";
 import { AddOrganizationModal } from "../components/AddOrganizationModal";
 import { SkeletonCarousel } from "../components/SkeletonLoader";
@@ -27,8 +27,8 @@ export function HomePage({ onSelectClient }: HomePageProps) {
     loadClients();
   }, []);
 
-  const handleCreateClient = async (name: string, company?: { companyName: string; applicableManufacturerOrGpoMakingPaymentId?: string; submittingApplicableManufacturerOrGpoName?: string }) => {
-    await clientsApi.create(name, company);
+  const handleCreateClient = async (payload: CreateClientPayload) => {
+    await clientsApi.create(payload);
     setIsCreateModalOpen(false);
     await loadClients();
   };

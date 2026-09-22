@@ -7,9 +7,13 @@ export const clientsRouter = Router();
 
 const nameSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  companyName: z.string().optional(),
-  applicableManufacturerOrGpoMakingPaymentId: z.string().optional(),
-  submittingApplicableManufacturerOrGpoName: z.string().optional(),
+});
+
+const createClientSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  isCustomEntry: z.boolean(),
+  applicableManufacturerOrGpoMakingPaymentId: z.string().trim().optional(),
+  submittingApplicableManufacturerOrGpoName: z.string().trim().optional(),
 });
 
 clientsRouter.get(
@@ -45,17 +49,38 @@ clientsRouter.get(
 clientsRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    const { name, companyName, applicableManufacturerOrGpoMakingPaymentId, submittingApplicableManufacturerOrGpoName } = nameSchema.parse(req.body);
+    const { name, isCustomEntry, applicableManufacturerOrGpoMakingPaymentId, submittingApplicableManufacturerOrGpoName } =
+      createClientSchema.parse(req.body);
 
     const existing = await prisma.client.findUnique({ where: { name } });
     if (existing) {
       throw new HttpError(409, `A client named "${name}" already exists`);
     }
 
+    if (isCustomEntry) {
+      // Step 1: create the row with generated Payment ID placeholder
+      const created = await prisma.client.create({
+        data: {
+          name,
+          companyName: name,
+          submittingApplicableManufacturerOrGpoName: name,
+          applicableManufacturerOrGpoMakingPaymentId: null,
+        },
+      });
+      // Step 2: stamp the generated Payment ID now that we have the row's id
+      const client = await prisma.client.update({
+        where: { id: created.id },
+        data: { applicableManufacturerOrGpoMakingPaymentId: `CUSTOM-${created.id}` },
+      });
+      res.status(201).json({ id: client.id, name: client.name });
+      return;
+    }
+
+    // Directory-match path
     const client = await prisma.client.create({
       data: {
         name,
-        companyName: companyName || null,
+        companyName: name,
         applicableManufacturerOrGpoMakingPaymentId: applicableManufacturerOrGpoMakingPaymentId || null,
         submittingApplicableManufacturerOrGpoName: submittingApplicableManufacturerOrGpoName || null,
       },

@@ -27,7 +27,7 @@ organizationDirectoryRouter.get(
         applicableManufacturerOrGpoMakingPaymentId: true,
         submittingApplicableManufacturerOrGpoName: true,
       },
-      take: 20,
+      take: 50,
     });
 
     res.json(results);

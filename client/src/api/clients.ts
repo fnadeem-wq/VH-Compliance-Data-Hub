@@ -8,11 +8,17 @@ export interface ClientSummary {
   totalFiles: number;
 }
 
+export interface CreateClientPayload {
+  name: string;
+  isCustomEntry: boolean;
+  applicableManufacturerOrGpoMakingPaymentId?: string;
+  submittingApplicableManufacturerOrGpoName?: string;
+}
+
 export const clientsApi = {
   list: () => http.get<Entity[]>("/clients"),
   summary: () => http.get<ClientSummary[]>("/clients/summary"),
-  create: (name: string, company?: { companyName: string; applicableManufacturerOrGpoMakingPaymentId?: string; submittingApplicableManufacturerOrGpoName?: string }) =>
-    http.post<Entity>("/clients", { name, ...company }),
+  create: (payload: CreateClientPayload) => http.post<Entity>("/clients", payload),
   rename: (id: number, name: string) => http.patch<Entity>(`/clients/${id}`, { name }),
   remove: (id: number) => http.delete<void>(`/clients/${id}`),
   recordCount: (id: number) => http.get<{ count: number }>(`/clients/${id}/record-count`),
